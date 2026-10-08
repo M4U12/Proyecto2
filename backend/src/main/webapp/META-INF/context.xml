@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context>
-    <Resource name="jdbc/code_n_school"
-              auth="Container"
-              type="javax.sql.DataSource"
-              maxTotal="20" 
-              maxIdle="5" 
-              maxWaitMillis="10000"
-              username="mau"
-              password="IPC2026"
-              driverClassName="com.mysql.cj.jdbc.Driver"
-              url="jdbc:mysql://localhost:3306/code_n_school?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC"/>
+<Context path="/Proyecto2_coden">
+  <Resource auth="Container" driverClassName="com.mysql.cj.jdbc.Driver" factory="org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory" logAbandoned="true" maxIdle="5" maxTotal="20" maxWaitMillis="10000" minEvictableIdleTimeMillis="30000" minIdle="5" name="jdbc/code_n_school" password="IPC2026" removeAbandonedOnBorrow="true" removeAbandonedTimeout="60" testOnBorrow="true" testOnReturn="false" testWhileIdle="false" timeBetweenEvictionRunsMillis="30000" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/code_n_school?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC" username="mau" validationQuery="SELECT 1" validationQueryTimeout="30"/>
 </Context>

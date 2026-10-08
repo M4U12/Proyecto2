@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,19 +11,17 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Base64; // Importamos Base64 en lugar de BCrypt
 import modelos.Empleado;
 import modelos.Usuario;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class EmpleadoDAO {
-
-    private DBConection conexionDB = new DBConection();
 
     public Optional<Empleado> buscarPorDpi(String dpi) throws BDException {
         String query = "SELECT * FROM empleado WHERE dpi = ?";
         Empleado empleado = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, dpi);
 
@@ -50,7 +48,7 @@ public class EmpleadoDAO {
     public boolean registrarEmpleado(Empleado empleado) throws BDException {
         String query = "INSERT INTO empleado (dpi, nombres, apellidos, puesto, fecha_contratacion, salario, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, empleado.getDpi());
             ps.setString(2, empleado.getNombres());
@@ -74,7 +72,7 @@ public class EmpleadoDAO {
         Connection connection = null;
 
         try {
-            connection = conexionDB.getConection();
+            connection = DBConnectionSingleton.getInstance().getConnection();
             connection.setAutoCommit(false);
 
             int idEmpleadoGenerado = 0;
@@ -100,9 +98,9 @@ public class EmpleadoDAO {
                 try (PreparedStatement psUsuario = connection.prepareStatement(queryUsuario)) {
                     psUsuario.setString(1, usuario.getCorreo());
 
-                    // hashea la contraseña antes de guardarla
-                    String hashPassword = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
-                    psUsuario.setString(2, hashPassword);
+                    // contraseña en base64 antes de guardarla
+                    String passwordBase64 = Base64.getEncoder().encodeToString(usuario.getPassword().getBytes());
+                    psUsuario.setString(2, passwordBase64);
 
                     psUsuario.setString(3, usuario.getRol().name());
                     psUsuario.setBoolean(4, usuario.isEstado());
@@ -143,7 +141,7 @@ public class EmpleadoDAO {
     public boolean modificarEmpleado(Empleado empleado) throws BDException {
         String query = "UPDATE empleado SET nombres = ?, apellidos = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, empleado.getNombres());
             ps.setString(2, empleado.getApellidos());
@@ -162,7 +160,7 @@ public class EmpleadoDAO {
     public boolean cambiarEstado(int idEmpleado, boolean estado) throws BDException {
         String query = "UPDATE empleado SET estado = ? WHERE id_empleado = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setBoolean(1, estado);
             ps.setInt(2, idEmpleado);
@@ -180,7 +178,7 @@ public class EmpleadoDAO {
 
         int offset = (pagina - 1) * tamanoPagina;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, tamanoPagina);
             ps.setInt(2, offset);
@@ -188,14 +186,14 @@ public class EmpleadoDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Empleado empleado = new Empleado(
-                    (rs.getInt("id_empleado")),
-                    (rs.getString("dpi")),
-                    (rs.getString("nombres")),
-                    (rs.getString("apellidos")),
-                    (rs.getString("puesto")),
-                    (rs.getObject("fecha_contratacion", LocalDate.class)),
-                    (rs.getDouble("salario")),
-                    (rs.getBoolean("estado")));
+                            rs.getInt("id_empleado"),
+                            rs.getString("dpi"),
+                            rs.getString("nombres"),
+                            rs.getString("apellidos"),
+                            rs.getString("puesto"),
+                            rs.getObject("fecha_contratacion", LocalDate.class),
+                            rs.getDouble("salario"),
+                            rs.getBoolean("estado"));
 
                     listaEmpleados.add(empleado);
                 }

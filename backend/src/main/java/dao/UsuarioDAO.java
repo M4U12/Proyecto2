@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import modelos.Usuario;
 import enums.*;
@@ -8,32 +8,32 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.mindrot.jbcrypt.BCrypt;
+import java.util.Base64;
 
 public class UsuarioDAO {
-
-    private DBConection conexionDB = new DBConection();
 
     public Optional<Usuario> autenticar(String correo, String password) throws BDException {
         String query = "SELECT * FROM usuario WHERE correo = ?";
         Usuario usuario = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, correo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String hashBD = rs.getString("password");
+                    String pass = rs.getString("password");
 
-                    //verifica si la contraseña coincide con el hash guardado
-                    if (BCrypt.checkpw(password, hashBD)) {
+                    String passwordCodificada = Base64.getEncoder().encodeToString(password.getBytes());
+
+                    // verifica si la contraseña codificada coincide con la guardada
+                    if (passwordCodificada.equals(pass)) {
                         usuario = new Usuario();
                         usuario.setIdUsuario(rs.getInt("id_usuario"));
                         usuario.setCorreo(rs.getString("correo"));
-                        usuario.setPassword(hashBD);
+                        usuario.setPassword(pass);
                         usuario.setRol(Rol.valueOf(rs.getString("rol")));
 
-                        //el endpoint decidirá que hacer si es false
+                        // el endpoint decidirá qué hacer si es false
                         usuario.setEstado(rs.getBoolean("estado"));
 
                         int idEmpleado = rs.getInt("id_empleado");
@@ -58,13 +58,13 @@ public class UsuarioDAO {
     public boolean registrarUsuario(Usuario usuario) throws BDException {
         String query = "INSERT INTO usuario (correo, password, rol, estado, id_empleado, id_estudiante) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, usuario.getCorreo());
 
-            // hashea la contraseña antes de guardarla en la base de datos
-            // gensalt() genera una "semilla" aleatoria para hacer el hash aun mas seguro
-            String password = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
-            ps.setString(2, password);
+            // usar base64 antes de guardarla
+            String passwordCodificada = Base64.getEncoder().encodeToString(usuario.getPassword().getBytes());
+            ps.setString(2, passwordCodificada);
+
             ps.setString(3, usuario.getRol().name());
             ps.setBoolean(4, usuario.isEstado());
 
@@ -91,7 +91,7 @@ public class UsuarioDAO {
     public boolean modificarPerfil(Usuario usuario) throws BDException {
         String query = "UPDATE usuario SET correo = ? WHERE id_usuario = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, usuario.getCorreo());
             ps.setInt(2, usuario.getIdUsuario());
@@ -103,15 +103,15 @@ public class UsuarioDAO {
         }
     }
 
-    public boolean actualizarPassword(int idUsuario, String nuevaContraseña) throws BDException {
+    public boolean actualizarPassword(int idUsuario, String nuevaContrasena) throws BDException {
         String query = "UPDATE usuario SET password = ? WHERE id_usuario = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
-            // hashea la nueva contraseña 
-            String nuevoHash = BCrypt.hashpw(nuevaContraseña, BCrypt.gensalt());
+            // nueva contraseña en Base64
+            String nuevaPassword = Base64.getEncoder().encodeToString(nuevaContrasena.getBytes());
 
-            ps.setString(1, nuevoHash);
+            ps.setString(1, nuevaPassword);
             ps.setInt(2, idUsuario);
 
             int filasAfectadas = ps.executeUpdate();
@@ -126,28 +126,26 @@ public class UsuarioDAO {
         String query = "SELECT * FROM usuario WHERE correo = ?";
         Usuario usuario = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, correo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    if (rs.next()) {
-                        usuario = new Usuario();
-                        usuario.setIdUsuario(rs.getInt("id_usuario"));
-                        usuario.setCorreo(rs.getString("correo"));
-                        usuario.setPassword(rs.getString("password"));
-                        usuario.setRol(Rol.valueOf(rs.getString("rol")));
-                        usuario.setEstado(rs.getBoolean("estado"));
+                    usuario = new Usuario();
+                    usuario.setIdUsuario(rs.getInt("id_usuario"));
+                    usuario.setCorreo(rs.getString("correo"));
+                    usuario.setPassword(rs.getString("password"));
+                    usuario.setRol(Rol.valueOf(rs.getString("rol")));
+                    usuario.setEstado(rs.getBoolean("estado"));
 
-                        int idEmpleado = rs.getInt("id_empleado");
-                        if (!rs.wasNull()) {
-                            usuario.setIdEmpleado(idEmpleado);
-                        }
+                    int idEmpleado = rs.getInt("id_empleado");
+                    if (!rs.wasNull()) {
+                        usuario.setIdEmpleado(idEmpleado);
+                    }
 
-                        int idEstudiante = rs.getInt("id_estudiante");
-                        if (!rs.wasNull()) {
-                            usuario.setIdEstudiante(idEstudiante);
-                        }
+                    int idEstudiante = rs.getInt("id_estudiante");
+                    if (!rs.wasNull()) {
+                        usuario.setIdEstudiante(idEstudiante);
                     }
                 }
             }
@@ -162,7 +160,7 @@ public class UsuarioDAO {
     public boolean modificarUsuario(Usuario usuario) throws BDException {
         String query = "UPDATE usuario SET correo = ?, rol = ?, id_empleado = ?, id_estudiante = ? WHERE id_usuario = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, usuario.getCorreo());
             ps.setString(2, usuario.getRol().name());
@@ -189,14 +187,39 @@ public class UsuarioDAO {
     }
 
     public boolean cambiarEstado(int idUsuario, boolean estado) throws BDException {
-        String query = "UPDATE usuario SET estado = ? WHERE id_usuario = ?";
+        String queryRol = "SELECT rol FROM usuario WHERE id_usuario = ?";
+        String queryCount = "SELECT COUNT(*) FROM usuario WHERE rol = 'SUPER_ADMIN' AND estado = true";
+        String queryUpdate = "UPDATE usuario SET estado = ? WHERE id_usuario = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection()) {
 
-            ps.setBoolean(1, estado);
-            ps.setInt(2, idUsuario);
+            // para evitar desactivar al ultimo super admin
+            if (!estado) {
+                try (PreparedStatement psRol = connection.prepareStatement(queryRol)) {
+                    psRol.setInt(1, idUsuario);
+                    try (ResultSet rsRol = psRol.executeQuery()) {
+                        if (rsRol.next()) {
+                            String rol = rsRol.getString("rol");
 
-            return ps.executeUpdate() > 0;
+                            if ("SUPER_ADMIN".equals(rol)) {
+                                try (PreparedStatement psCount = connection.prepareStatement(queryCount); ResultSet rsCount = psCount.executeQuery()) {
+
+                                    if (rsCount.next() && rsCount.getInt(1) <= 1) {
+                                        throw new BDException("Operación denegada: No se puede desactivar al único Super Administrador activo. Debe haber al menos uno en el sistema.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            try (PreparedStatement psUpdate = connection.prepareStatement(queryUpdate)) {
+                psUpdate.setBoolean(1, estado);
+                psUpdate.setInt(2, idUsuario);
+
+                return psUpdate.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             throw new BDException("Error al cambiar el estado del usuario: " + e.getMessage(), e);
@@ -210,7 +233,7 @@ public class UsuarioDAO {
         // punto de inicio 
         int offset = (pagina - 1) * tamanoPagina;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, tamanoPagina);
             ps.setInt(2, offset);
@@ -241,5 +264,25 @@ public class UsuarioDAO {
         }
 
         return listaUsuarios;
+    }
+
+    public Optional<String> buscarPasswordPorId(int idUsuario) throws BDException {
+        String query = "SELECT password FROM usuario WHERE id_usuario = ?";
+        String pass = null;
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    pass = rs.getString("password");
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al buscar la contraseña del usuario: " + e.getMessage(), e);
+        }
+
+        return Optional.ofNullable(pass);
     }
 }

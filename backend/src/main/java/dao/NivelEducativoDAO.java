@@ -1,10 +1,9 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import enums.Nivel;
 import modelos.NivelEducativo;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,14 +13,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class NivelEducativoDAO {
-
-    private DBConection conexionDB = new DBConection();
-
+    
     public List<NivelEducativo> listarTodos() throws BDException {
         List<NivelEducativo> listaNiveles = new ArrayList<>();
         String query = "SELECT * FROM nivel_educativo";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 NivelEducativo nivel = new NivelEducativo(
@@ -44,7 +41,7 @@ public class NivelEducativoDAO {
         String query = "SELECT * FROM nivel_educativo WHERE id_nivel = ?";
         NivelEducativo nivel = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, idNivel);
 
@@ -66,7 +63,7 @@ public class NivelEducativoDAO {
 
     public boolean modificarNivel(NivelEducativo nivel) throws BDException {
         String query = "UPDATE nivel_educativo SET descripcion = ? WHERE id_nivel = ?";
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, nivel.getDescripcion());
             ps.setInt(2, nivel.getIdNivel());
@@ -81,7 +78,7 @@ public class NivelEducativoDAO {
     public boolean cambiarEstado(int idNivel, boolean estado) throws BDException {
         String query = "UPDATE nivel_educativo SET estado = ? WHERE id_nivel = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setBoolean(1, estado);
             ps.setInt(2, idNivel);

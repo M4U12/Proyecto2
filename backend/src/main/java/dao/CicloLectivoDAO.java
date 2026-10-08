@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import modelos.CicloLectivo;
 import enums.EstadoCiclo;
@@ -16,12 +16,10 @@ import java.util.Optional;
 
 public class CicloLectivoDAO {
 
-    private DBConection conexionDB = new DBConection();
-
     public boolean crearCiclo(CicloLectivo ciclo) throws BDException {
         String query = "INSERT INTO ciclo_lectivo (anio, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?)";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, ciclo.getAnio());
             ps.setObject(2, ciclo.getFechaInicio());
@@ -39,7 +37,7 @@ public class CicloLectivoDAO {
         String queryVerificar = "SELECT COUNT(*) FROM ciclo_lectivo WHERE estado = 'ABIERTO'";
         String queryAbrir = "UPDATE ciclo_lectivo SET estado = 'ABIERTO' WHERE id_ciclo = ?";
 
-        try (Connection connection = conexionDB.getConection()) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection()) {
             try (PreparedStatement psVerificar = connection.prepareStatement(queryVerificar); ResultSet rs = psVerificar.executeQuery()) {
 
                 if (rs.next() && rs.getInt(1) > 0) {
@@ -60,7 +58,7 @@ public class CicloLectivoDAO {
     public boolean cerrarCiclo(int idCiclo) throws BDException {
         String query = "UPDATE ciclo_lectivo SET estado = 'CERRADO' WHERE id_ciclo = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, idCiclo);
             return ps.executeUpdate() > 0;
@@ -74,7 +72,7 @@ public class CicloLectivoDAO {
         String query = "SELECT * FROM ciclo_lectivo WHERE estado = 'ABIERTO' LIMIT 1";
         CicloLectivo ciclo = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
                 ciclo = new CicloLectivo();
@@ -98,7 +96,7 @@ public class CicloLectivoDAO {
 
         int offset = (pagina - 1) * tamanoPagina;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, tamanoPagina);
             ps.setInt(2, offset);

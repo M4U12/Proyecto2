@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import modelos.Grado;
 import modelos.Seccion;
@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class GradoDAO {
-
-    private DBConection conexionDB = new DBConection();
-
     public boolean registrarGradoConSecciones(Grado grado, List<Seccion> secciones) throws BDException {
         String queryGrado = "INSERT INTO grado (nombre, id_nivel, id_carrera) VALUES (?, ?, ?)";
         String querySeccion = "INSERT INTO seccion (identificador, cupo, id_grado) VALUES (?, ?, ?)";
@@ -20,7 +17,7 @@ public class GradoDAO {
         Connection connection = null;
 
         try {
-            connection = conexionDB.getConection();
+            connection = DBConnectionSingleton.getInstance().getConnection();
             connection.setAutoCommit(false);
 
             try (PreparedStatement psGrado = connection.prepareStatement(queryGrado, Statement.RETURN_GENERATED_KEYS)) {
@@ -83,7 +80,7 @@ public class GradoDAO {
     public boolean modificarGrado(Grado grado) throws BDException {
         String queryUpdateGrado = "UPDATE grado SET nombre = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement psGrado = connection.prepareStatement(queryUpdateGrado)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryUpdateGrado)) {
 
             psGrado.setString(1, grado.getNombre());
             psGrado.setInt(2, grado.getIdNivel());
@@ -107,7 +104,7 @@ public class GradoDAO {
         String queryGrado = "SELECT DISTINCT g.* FROM grado g INNER JOIN curriculo c ON g.id_grado = c.id_grado WHERE c.id_ciclo = ?";
         String querySeccion = "SELECT * FROM seccion WHERE id_grado = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
 
             psGrado.setInt(1, idCiclo);
 
@@ -157,7 +154,7 @@ public class GradoDAO {
         String query = "SELECT * FROM grado WHERE id_grado = ?";
         Grado grado = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, idGrado);
             try (ResultSet rs = ps.executeQuery()) {

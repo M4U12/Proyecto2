@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import modelos.Curso;
 import java.sql.Connection;
@@ -12,14 +12,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class CursoDAO {
-
-    private DBConection conexionDB = new DBConection();
     
     public Optional<Curso> buscarPorCodigo(String codigo) throws BDException {
         String query = "SELECT * FROM curso WHERE codigo = ?";
         Curso curso = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, codigo);
 
@@ -42,7 +40,7 @@ public class CursoDAO {
     public boolean crearCurso(Curso curso) throws BDException {
         String query = "INSERT INTO curso (codigo, nombre, estado) VALUES (?, ?, ?)";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, curso.getCodigo());
             ps.setString(2, curso.getNombre());
@@ -58,7 +56,7 @@ public class CursoDAO {
     public boolean modificarCurso(Curso curso) throws BDException {
         String query = "UPDATE curso SET codigo = ?, nombre = ? WHERE id_curso = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setString(1, curso.getCodigo());
             ps.setString(2, curso.getNombre());
@@ -74,7 +72,7 @@ public class CursoDAO {
     public boolean cambiarEstado(int idCurso, boolean estado) throws BDException {
         String query = "UPDATE curso SET estado = ? WHERE id_curso = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setBoolean(1, estado);
             ps.setInt(2, idCurso);
@@ -93,7 +91,7 @@ public class CursoDAO {
 
         int offset = (pagina - 1) * tamanoPagina;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, tamanoPagina);
             ps.setInt(2, offset);
@@ -121,7 +119,7 @@ public class CursoDAO {
         String query = "SELECT * FROM curso WHERE id_curso = ?";
         Curso curso = null;
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, idCurso);
 

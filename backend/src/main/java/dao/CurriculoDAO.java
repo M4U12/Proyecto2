@@ -1,6 +1,6 @@
 package dao;
 
-import dbconection.DBConection;
+import dbconection.DBConnectionSingleton;
 import excepciones.BDException;
 import modelos.Curso;
 import java.sql.Connection;
@@ -12,9 +12,6 @@ import java.util.List;
 
 public class CurriculoDAO {
 
-    private DBConection conexionDB = new DBConection();
-
-
     public boolean definirMallaCurricular(int idGrado, int idCiclo, List<Integer> idsCursos) throws BDException {
         // limpiamos la malla anterior para ese grado y ciclo específico
         String queryDelete = "DELETE FROM curriculo WHERE id_grado = ? AND id_ciclo = ?";
@@ -24,7 +21,7 @@ public class CurriculoDAO {
         Connection connection = null;
 
         try {
-            connection = conexionDB.getConection();
+            connection = DBConnectionSingleton.getInstance().getConnection();
             connection.setAutoCommit(false); 
 
             // eliminar asignaciones previas
@@ -79,7 +76,7 @@ public class CurriculoDAO {
                 + "INNER JOIN curriculo cur ON c.id_curso = cur.id_curso "
                 + "WHERE cur.id_grado = ? AND cur.id_ciclo = ?";
 
-        try (Connection connection = conexionDB.getConection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
 
             ps.setInt(1, idGrado);
             ps.setInt(2, idCiclo);
