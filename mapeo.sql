@@ -35,6 +35,8 @@ CREATE TABLE ciclo_lectivo (
 CREATE TABLE nivel_educativo (
     id_nivel INT AUTO_INCREMENT PRIMARY KEY,
     nivel ENUM('PRE_PRIMARIA', 'PRIMARIA', 'BASICO', 'DIVERSIFICADO') UNIQUE NOT NULL
+    descripcion VARCHAR(150) NULL,        
+    estado BOOLEAN NOT NULL
 );
 
 CREATE TABLE carrera (

@@ -5,7 +5,7 @@ import dto.CrearCicloRequest;
 import enums.EstadoCiclo;
 import excepciones.BDException;
 import modelos.CicloLectivo;
-
+import seguridad.Secured;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/ciclos")
+@Secured
 public class CicloLectivoResource {
 
     private CicloLectivoDAO cicloDAO = new CicloLectivoDAO();
@@ -22,12 +23,16 @@ public class CicloLectivoResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response crearCiclo(CrearCicloRequest request) {
+        if (request.getAnio() < 2026) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El año lectivo debe ser un número positivo y mayor o igual a 2026.\"}").build();
+        }
         try {
             CicloLectivo nuevoCiclo = new CicloLectivo();
             nuevoCiclo.setAnio(request.getAnio());
             nuevoCiclo.setFechaInicio(request.getFechaInicio());
             nuevoCiclo.setFechaFin(request.getFechaFin());
-            nuevoCiclo.setEstado(EstadoCiclo.CERRADO); 
+            nuevoCiclo.setEstado(EstadoCiclo.CERRADO);
 
             boolean creado = cicloDAO.crearCiclo(nuevoCiclo);
 
@@ -65,7 +70,6 @@ public class CicloLectivoResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
-
 
     // Cerrar Ciclo Lectivo
     @PUT

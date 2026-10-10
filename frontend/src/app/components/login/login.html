@@ -1,0 +1,49 @@
+<!-- Fondo degradado formal a pantalla completa -->
+<div class="d-flex align-items-center justify-content-center vh-100 custom-bg">
+  
+  <!-- Tarjeta con efecto Glassmorphism -->
+  <div class="glass-card p-4 p-sm-5 mx-3 mx-sm-0">
+    
+    <!-- Icono de Usuario (Avatar) -->
+    <div class="text-center mb-4">
+      <div class="avatar-circle mx-auto d-flex align-items-center justify-content-center mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="rgba(255,255,255,0.7)" viewBox="0 0 16 16">
+          <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+          <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+        </svg>
+      </div>
+      <h5 class="text-white fw-light tracking-wide">SISTEMA ACADÉMICO</h5>
+    </div>
+    
+    <div *ngIf="mensajeError" class="alert alert-danger glass-alert py-2 text-center" role="alert">
+      {{ mensajeError }}
+    </div>
+
+    <!-- Formulario Reactivo -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Input Correo -->
+      <div class="input-container mb-4">
+        <i class="bi bi-envelope input-icon text-white-50"></i>
+        <input type="email" class="form-control glass-input" id="correo" formControlName="correo" placeholder="Correo Electrónico">
+      </div>
+
+      <!-- Input Contraseña -->
+      <div class="input-container mb-5">
+        <i class="bi bi-lock input-icon text-white-50"></i>
+        <input type="password" class="form-control glass-input" id="password" formControlName="password" placeholder="Contraseña">
+      </div>
+      
+      <!-- Botón -->
+      <button type="submit" class="btn btn-primary w-100 rounded-pill glass-btn fw-bold tracking-wide" [disabled]="loginForm.invalid">
+        INICIAR SESIÓN
+      </button>
+      
+
+      <div class="d-flex justify-content-between mt-4 px-1">
+        <a href="#" class="text-white-50 text-decoration-none small hover-white">Registrarse</a>
+        <a href="#" class="text-white-50 text-decoration-none small hover-white">¿Olvidaste tu contraseña?</a>
+      </div>  
+    </form>
+  </div>
+</div>

@@ -12,8 +12,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import seguridad.Secured;
 
 @Path("/grados")
+@Secured
 public class GradoResource {
 
     private GradoDAO gradoDAO = new GradoDAO();

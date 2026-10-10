@@ -1,0 +1,132 @@
+/* Fondo formal: Degradado oscuro en tonos azul noche, pizarra y negro */
+.custom-bg {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  background-size: cover;
+}
+
+/* Letras más separadas */
+.tracking-wide {
+  letter-spacing: 1.5px;
+}
+
+/* TARJETA GLASSMORPHISM */
+.glass-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.05); /* muy transparente */
+  backdrop-filter: blur(15px); /* efecto de cristal borroso */
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+/* Círculo del Avatar */
+.avatar-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* CONTENEDOR DE LOS INPUTS (Para posicionar el ícono) */
+.input-container {
+  position: relative;
+}
+
+/* Iconos dentro de los inputs */
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* INPUTS ESTILO LÍNEA INFERIOR */
+.glass-input {
+  background: transparent !important;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0;
+  color: white !important;
+  padding: 10px 10px 10px 38px; /* Espacio para el ícono */
+  font-weight: 300;
+  transition: border-color 0.3s ease;
+}
+
+/* Quitar el borde azul feo de Bootstrap al hacer clic */
+.glass-input:focus {
+  box-shadow: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 1);
+}
+
+/* Color del texto del placeholder */
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* SOLUCIÓN AL AUTOCOMPLETADO BLANCO DE CHROME */
+.glass-input:-webkit-autofill,
+.glass-input:-webkit-autofill:hover, 
+.glass-input:-webkit-autofill:focus, 
+.glass-input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: white !important;
+}
+
+/* BOTÓN DE LOGIN */
+.glass-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 12px;
+  transition: all 0.3s ease;
+}
+
+.glass-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  color: white;
+}
+
+.glass-btn:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Enlaces */
+.hover-white:hover {
+  color: white !important;
+}
+
+.custom-checkbox {
+  background-color: transparent;
+  border-color: rgba(255,255,255,0.4);
+}
+
+.custom-checkbox:checked {
+  background-color: rgba(255,255,255,0.7);
+  border-color: transparent;
+}
+
+/* Mensaje de error */
+.glass-alert {
+  background: rgba(220, 53, 69, 0.6);
+  border: none;
+  color: white;
+  border-radius: 10px;
+}
+
+/* Iconos dentro de los inputs */
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 1.2rem; 
+}

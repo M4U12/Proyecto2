@@ -10,8 +10,10 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import seguridad.Secured;
 
 @Path("/cursos")
+@Secured
 public class CursoResource {
     private CursoDAO cursoDAO = new CursoDAO();
 

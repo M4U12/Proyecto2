@@ -1,1 +1,62 @@
-/* You can add global styles to this file, and also import other style files */
+/* Panel principal de cristal */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+/* Inputs, Selects y Textareas de formulario */
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white !important; 
+  border-radius: 10px;
+}
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+  color: white;
+}
+
+/* Fix para el icono del calendario en los input date */
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* Botones principales */
+.glass-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: 0.3s;
+}
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+/* Botones pequeños de acciones (iconos en tablas) */
+.glass-btn-action {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+}
+.glass-btn-action:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Tablas transparentes */
+.glass-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: rgba(255, 255, 255, 0.8);
+  --bs-table-border-color: rgba(255, 255, 255, 0.1);
+}
+.glass-table th {
+  font-weight: 400;
+  color: white;
+  letter-spacing: 1px;
+}
+

@@ -1,0 +1,55 @@
+<!-- Fondo global oscuro -->
+<div class="d-flex vh-100 custom-global-bg">
+  
+  <!-- Sidebar de Cristal -->
+  <nav class="glass-sidebar d-flex flex-column p-4">
+    <!-- Logotipo Institucional -->
+    <div class="text-center mb-5 mt-2">
+      <i class="bi bi-bank2 fs-1 text-white-50 mb-2"></i>
+      <h5 class="text-white fw-light tracking-wide mt-2">Coden School</h5>
+      <small class="text-white-50 tracking-wide" style="font-size: 0.75rem;">GESTIÓN ACADÉMICA</small>
+    </div>
+
+    <!-- Menú de Opciones -->
+    <ul class="nav flex-column mb-auto gap-2">
+      <li class="nav-item">
+        <a href="#" class="nav-link glass-nav-link active">
+          <i class="bi bi-grid-1x2"></i> Panel Principal
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/ciclos" class="nav-link glass-nav-link">
+        <i class="bi bi-calendar3"></i> Ciclos Lectivos
+      </a>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/empleados" class="nav-link glass-nav-link">
+        <i class="bi bi-calendar3"></i> Registrar Empleados
+      </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link glass-nav-link">
+          <i class="bi bi-mortarboard"></i> Carreras
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link glass-nav-link">
+          <i class="bi bi-people"></i> Estudiantes
+        </a>
+      </li>
+    </ul>
+
+    <!-- Botón de Salir en el pie del Sidebar -->
+    <div class="mt-auto">
+      <button (click)="cerrarSesion()" class="btn w-100 glass-btn-danger text-start d-flex align-items-center gap-3">
+        <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Contenido Principal -->
+  <main class="flex-grow-1 p-4 p-md-5 overflow-auto">
+    <!-- Aquí Angular inyectará Ciclos, Carreras, etc. -->
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

@@ -13,8 +13,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
 import java.util.Base64;
+import seguridad.Secured;
 
 @Path("/usuarios")
+@Secured
 public class UsuarioResource {
 
     private UsuarioDAO usuarioDAO = new UsuarioDAO();

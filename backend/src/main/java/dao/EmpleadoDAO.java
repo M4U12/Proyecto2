@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Base64; // Importamos Base64 en lugar de BCrypt
+import java.util.Base64; 
 import modelos.Empleado;
 import modelos.Usuario;
 

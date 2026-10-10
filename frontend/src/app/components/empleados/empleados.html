@@ -1,0 +1,127 @@
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-person-plus me-2"></i>Registrar Nuevo Personal</h4>
+  
+  <form class="row g-3" [formGroup]="empleadoForm" (ngSubmit)="guardarEmpleado()">
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">DPI</label>
+      <input type="text" class="form-control glass-input" formControlName="dpi" (keypress)="soloNumeros($event)" placeholder="Ej. 1234567890101" maxlength="13">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Nombres</label>
+      <input type="text" class="form-control glass-input text-white" formControlName="nombres" (keypress)="soloLetras($event)">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Apellidos</label>
+      <input type="text" class="form-control glass-input text-white" formControlName="apellidos" (keypress)="soloLetras($event)">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Puesto </label>
+      <input type="text" class="form-control glass-input text-white" formControlName="puesto" placeholder="Ej. Conserje, Maestro...">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Fecha de Contratación</label>
+      <input type="date" class="form-control glass-input text-white" formControlName="fechaContratacion">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Salario Mensual (Q)</label>
+      <input type="number" class="form-control glass-input text-white" formControlName="salario" min="0" step="0.01">
+    </div>
+ 
+    <div class="col-12 mt-4">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" formControlName="crearCuenta" id="switchCuenta" style="cursor: pointer;">
+        <label class="form-check-label text-white-50 ms-2" for="switchCuenta" style="cursor: pointer;">
+          Crear cuenta de acceso al sistema 
+        </label>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE CUENTA  -->
+    <ng-container *ngIf="crearCuentaAcceso">
+      
+      <div class="col-md-4 mt-3">
+        <label class="text-white-50 small mb-1">Rol en el Sistema</label>
+        <select class="form-select glass-input text-white" formControlName="rol">
+          <option value="" disabled selected class="text-dark">Seleccione un rol...</option>
+          <option value="ADMINISTRADOR" class="text-dark">Administrador</option>
+          <option value="SECRETARIA" class="text-dark">Secretaria</option>
+          <option value="MAESTRO" class="text-dark">Maestro</option>
+          <option value="BIBLIOTECARIO" class="text-dark">Bibliotecario</option>
+        </select>
+      </div>
+
+      <div class="col-md-4 mt-3">
+        <label class="text-white-50 small mb-1">Correo Institucional</label>
+        <input type="email" class="form-control glass-input text-white" formControlName="correo" placeholder="ejemplo@codenschool.edu.gt">
+      </div>
+      
+      <div class="col-md-4 mt-3">
+        <label class="text-white-50 small mb-1">Contraseña Temporal</label>
+        <input type="password" class="form-control glass-input text-white" formControlName="password">
+      </div>
+    </ng-container>
+    
+    <div class="col-12 text-end mt-4">
+      <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4 tracking-wide" [disabled]="empleadoForm.invalid">
+        GUARDAR REGISTRO
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="glass-panel p-4">
+  <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-people me-2"></i>Nómina de Personal</h5>
+  <div class="table-responsive">
+    <table class="table glass-table text-white">
+      <thead>
+        <tr>
+          <th>DPI</th>
+          <th>Nombre Completo</th>
+          <th>Puesto</th>
+          <th>Contratación</th>
+          <th>Salario</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listaEmpleados.length === 0">
+          <td colspan="7" class="text-center text-white-50 py-3">No hay personal registrado en nómina.</td>
+        </tr>
+
+        <tr *ngFor="let emp of listaEmpleados">
+          <td>{{ emp.dpi }}</td>
+          <td>{{ emp.nombres }} {{ emp.apellidos }}</td>
+          <td><span class="badge text-white border border-secondary">{{ emp.puesto }}</span></td>
+          <td>
+             <span *ngIf="emp.fechaContratacion">{{ emp.fechaContratacion[2] }}/{{ emp.fechaContratacion[1] }}/{{ emp.fechaContratacion[0] }}</span>
+          </td>
+          <td>Q {{ emp.salario | number:'1.2-2' }}</td>
+          <td>
+            <span class="badge bg-opacity-75" 
+                  [ngClass]="{'bg-success': emp.estado, 'bg-danger': !emp.estado}">
+              {{ emp.estado ? 'ACTIVO' : 'BAJA' }}
+            </span>
+          </td>
+          <td>
+            <button *ngIf="!emp.estado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
+              class="btn btn-sm glass-btn-action text-success me-2" title="Dar de Alta">
+              <i class="bi bi-person-check-fill"></i>
+            </button>
+            
+            <button *ngIf="emp.estado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
+              class="btn btn-sm glass-btn-action text-danger" title="Dar de Baja">
+              <i class="bi bi-person-x-fill"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

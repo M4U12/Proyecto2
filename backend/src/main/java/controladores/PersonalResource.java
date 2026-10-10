@@ -11,8 +11,10 @@ import modelos.Usuario;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import seguridad.Secured;
 
 @Path("/personal")
+@Secured
 public class PersonalResource {
 
     private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
@@ -32,17 +34,24 @@ public class PersonalResource {
             empleado.setSalario(request.getSalario());
             empleado.setEstado(true);
 
-            Usuario usuario = new Usuario();
-            usuario.setCorreo(request.getCorreo());
-            usuario.setPassword(request.getPassword());
-            usuario.setRol(Rol.valueOf(request.getRol()));
-            usuario.setEstado(true);
+            boolean registrado;
+            // si viene un correo, crea la cuenta 
+            if (request.getCorreo() != null && !request.getCorreo().trim().isEmpty()) {
+                Usuario usuario = new Usuario();
+                usuario.setCorreo(request.getCorreo());
+                usuario.setPassword(request.getPassword());
+                usuario.setRol(Rol.valueOf(request.getRol()));
+                usuario.setEstado(true);
 
-            boolean registrado = empleadoDAO.registrarEmpleadoConUsuario(empleado, usuario);
+                registrado = empleadoDAO.registrarEmpleadoConUsuario(empleado, usuario);
+            } else {
+                // Si no hay correo solo guarda al empleado en la nomina
+                registrado = empleadoDAO.registrarEmpleado(empleado);
+            }
 
             if (registrado) {
                 return Response.status(Response.Status.CREATED)
-                        .entity("{\"mensaje\":\"Personal registrado y cuenta de usuario creada exitosamente.\"}").build();
+                        .entity("{\"mensaje\":\"Personal registrado exitosamente.\"}").build();
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity("{\"error\":\"No se pudo registrar al empleado.\"}").build();
@@ -77,6 +86,16 @@ public class PersonalResource {
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarPersonal() {
+        try {
+            return Response.ok(empleadoDAO.listarPaginado(1, 100)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
 }

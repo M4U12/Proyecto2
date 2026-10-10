@@ -11,8 +11,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
+import seguridad.Secured;
 
 @Path("/secciones")
+@Secured
 public class SeccionResource {
 
     private SeccionDAO seccionDAO = new SeccionDAO();
