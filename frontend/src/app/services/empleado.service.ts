@@ -23,4 +23,8 @@ export class EmpleadoService {
   cambiarEstado(id: number, estado: boolean): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/estado`, { estado: estado });
   }
+
+  modificarEmpleado(id: number, datos: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, datos);
+  }
 }

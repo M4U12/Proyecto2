@@ -1,7 +1,6 @@
 <div class="glass-panel p-4 mb-4">
   <h4 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-calendar-plus me-2"></i>Registrar Nuevo Ciclo</h4>
   
-  <!-- Conectamos el formulario a cicloForm y el botón a onSubmit() -->
   <form class="row g-3" [formGroup]="cicloForm" (ngSubmit)="onSubmit()">
     
     <div class="col-md-4">
@@ -20,7 +19,6 @@
     </div>
     
     <div class="col-12 text-end mt-4">
-      <!-- El botón se deshabilitará automáticamente si faltan datos o el año es menor a 2026 -->
       <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4 tracking-wide" [disabled]="cicloForm.invalid">
         GUARDAR CICLO
       </button>
@@ -34,7 +32,6 @@
     <table class="table glass-table text-white">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Año</th>
           <th>Inicio</th>
           <th>Fin</th>
@@ -43,13 +40,11 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Si no hay datos -->
         <tr *ngIf="listaCiclos.length === 0">
           <td colspan="6" class="text-center text-white-50 py-3">No hay ciclos lectivos registrados.</td>
         </tr>
 
         <tr *ngFor="let ciclo of listaCiclos">
-          <td>{{ ciclo.idCiclo }}</td>
           <td>{{ ciclo.anio }}</td>
           <td>
              <span *ngIf="ciclo.fechaInicio">{{ ciclo.fechaInicio[2] }}/{{ ciclo.fechaInicio[1] }}/{{ ciclo.fechaInicio[0] }}</span>
@@ -64,13 +59,17 @@
             </span>
           </td>
           <td>
-            <!-- Botón para abrir, solo se muestra si está cerrado -->
+            <!-- Botón Editar -->
+            <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Ciclo" 
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCiclo" (click)="abrirModalEdicion(ciclo)">
+              <i class="bi bi-pencil"></i>
+            </button>
+
             <button *ngIf="ciclo.estado === 'CERRADO'" (click)="abrirCiclo(ciclo.idCiclo)" 
               class="btn btn-sm glass-btn-action text-success me-2" title="Abrir Ciclo">
               <i class="bi bi-unlock"></i>
             </button>
             
-            <!-- Botón para cerrar, solo se muestra si está abierto -->
             <button *ngIf="ciclo.estado === 'ABIERTO'" (click)="cerrarCiclo(ciclo.idCiclo)" 
               class="btn btn-sm glass-btn-action text-danger" title="Cerrar Ciclo">
               <i class="bi bi-lock"></i>
@@ -79,5 +78,49 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- MODAL PARA EDICIÓN         -->
+<div class="modal fade" id="modalEditarCiclo" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-pencil-square me-2"></i>Editar Datos del Ciclo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <form class="row g-3" [formGroup]="cicloEditForm">
+          
+          <div class="col-md-4">
+            <label class="text-white-50 small mb-1">Año Lectivo</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="anio" (keypress)="soloNumeros($event)" min="2026">
+          </div>
+          
+          <div class="col-md-4">
+            <label class="text-white-50 small mb-1">Fecha de Inicio</label>
+            <input type="date" class="form-control glass-input text-white" formControlName="fechaInicio">
+          </div>
+          
+          <div class="col-md-4">
+            <label class="text-white-50 small mb-1">Fecha de Fin</label>
+            <input type="date" class="form-control glass-input text-white" formControlName="fechaFin">
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="actualizarCiclo()" [disabled]="cicloEditForm.invalid">
+          Actualizar Ciclo
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>

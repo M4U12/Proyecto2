@@ -1,11 +1,13 @@
+<!-- FORMULARIO PRINCIPAL DE REGISTRO (Intacto) -->
 <div class="glass-panel p-4 mb-4">
-  <h4 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-person-plus me-2"></i>Registrar Nuevo Personal</h4>
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-person-plus me-2"></i> Registrar Nuevo Personal
+  </h4>
   
   <form class="row g-3" [formGroup]="empleadoForm" (ngSubmit)="guardarEmpleado()">
-    
     <div class="col-md-4">
       <label class="text-white-50 small mb-1">DPI</label>
-      <input type="text" class="form-control glass-input" formControlName="dpi" (keypress)="soloNumeros($event)" placeholder="Ej. 1234567890101" maxlength="13">
+      <input type="text" class="form-control glass-input" formControlName="dpi" (keypress)="soloNumeros($event)" placeholder="Ej. 1234567890101" minlength="13" maxlength="13">
     </div>
     
     <div class="col-md-4">
@@ -18,41 +20,39 @@
       <input type="text" class="form-control glass-input text-white" formControlName="apellidos" (keypress)="soloLetras($event)">
     </div>
     
-    <div class="col-md-4">
-      <label class="text-white-50 small mb-1">Puesto </label>
+    <div class="col-md-4 mt-3">
+      <label class="text-white-50 small mb-1">Puesto</label>
       <input type="text" class="form-control glass-input text-white" formControlName="puesto" placeholder="Ej. Conserje, Maestro...">
     </div>
     
-    <div class="col-md-4">
+    <div class="col-md-4 mt-3">
       <label class="text-white-50 small mb-1">Fecha de Contratación</label>
       <input type="date" class="form-control glass-input text-white" formControlName="fechaContratacion">
     </div>
     
-    <div class="col-md-4">
+    <div class="col-md-4 mt-3">
       <label class="text-white-50 small mb-1">Salario Mensual (Q)</label>
       <input type="number" class="form-control glass-input text-white" formControlName="salario" min="0" step="0.01">
     </div>
- 
+
     <div class="col-12 mt-4">
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" formControlName="crearCuenta" id="switchCuenta" style="cursor: pointer;">
         <label class="form-check-label text-white-50 ms-2" for="switchCuenta" style="cursor: pointer;">
-          Crear cuenta de acceso al sistema 
+          Crear cuenta de acceso al sistema
         </label>
       </div>
     </div>
 
-    <!-- SECCIÓN DE CUENTA  -->
     <ng-container *ngIf="crearCuentaAcceso">
-      
       <div class="col-md-4 mt-3">
         <label class="text-white-50 small mb-1">Rol en el Sistema</label>
         <select class="form-select glass-input text-white" formControlName="rol">
-          <option value="" disabled selected class="text-dark">Seleccione un rol...</option>
-          <option value="ADMINISTRADOR" class="text-dark">Administrador</option>
-          <option value="SECRETARIA" class="text-dark">Secretaria</option>
-          <option value="MAESTRO" class="text-dark">Maestro</option>
-          <option value="BIBLIOTECARIO" class="text-dark">Bibliotecario</option>
+          <option value="" disabled selected>Seleccione un rol...</option>
+          <option value="ADMINISTRADOR">Administrador</option>
+          <option value="SECRETARIA">Secretaria</option>
+          <option value="MAESTRO">Maestro</option>
+          <option value="BIBLIOTECARIO">Bibliotecario</option>
         </select>
       </div>
 
@@ -75,6 +75,7 @@
   </form>
 </div>
 
+<!-- TABLA DE EMPLEADOS -->
 <div class="glass-panel p-4">
   <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-people me-2"></i>Nómina de Personal</h5>
   <div class="table-responsive">
@@ -110,6 +111,13 @@
             </span>
           </td>
           <td>
+            <!-- Botón Editar abre el Modal -->
+            <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Datos" 
+                    data-bs-toggle="modal" data-bs-target="#modalEditarEmpleado" (click)="abrirModalEdicion(emp)">
+              <i class="bi bi-pencil"></i>
+            </button>
+
+            <!-- Botones de estado -->
             <button *ngIf="!emp.estado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
               class="btn btn-sm glass-btn-action text-success me-2" title="Dar de Alta">
               <i class="bi bi-person-check-fill"></i>
@@ -123,5 +131,65 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+
+<div class="modal fade" id="modalEditarEmpleado" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-person-lines-fill me-2"></i>Editar Datos del Personal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <form class="row g-3" [formGroup]="empleadoEditForm">
+          
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">DPI</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="dpi" (keypress)="soloNumeros($event)" minlength="13" maxlength="13">
+          </div>
+          
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">Nombres</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="nombres" (keypress)="soloLetras($event)">
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Apellidos</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="apellidos" (keypress)="soloLetras($event)">
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Puesto</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="puesto">
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Fecha de Contratación</label>
+            <input type="date" class="form-control glass-input text-white" formControlName="fechaContratacion">
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Salario Mensual (Q)</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="salario" min="0" step="0.01">
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <!-- El botón llama a actualizarEmpleado y cierra el modal usando data-bs-dismiss -->
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="actualizarEmpleado()" [disabled]="empleadoEditForm.invalid">
+          Actualizar Datos
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>

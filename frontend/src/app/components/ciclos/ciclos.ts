@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { CicloService } from '../../services/ciclo.service';
 
-
 @Component({
   selector: 'app-ciclos',
   standalone: true,
@@ -13,22 +12,30 @@ import { CicloService } from '../../services/ciclo.service';
 })
 export class Ciclos implements OnInit { 
   cicloForm: FormGroup;
+  cicloEditForm: FormGroup;
   listaCiclos: any[] = []; 
 
   constructor(private fb: FormBuilder, private cicloService: CicloService, private cdr: ChangeDetectorRef) {
+    // creación
     this.cicloForm = this.fb.group({
+      anio: ['', [Validators.required, Validators.min(2026), Validators.pattern('^[0-9]+$')]],
+      fechaInicio: ['', Validators.required],
+      fechaFin: ['', Validators.required]
+    });
+
+    // edición
+    this.cicloEditForm = this.fb.group({
+      idCiclo: [''], 
       anio: ['', [Validators.required, Validators.min(2026), Validators.pattern('^[0-9]+$')]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required]
     });
   }
 
-  // Se ejecuta automáticamente al abrir la pantalla
   ngOnInit() {
     this.cargarCiclos();
   }
 
-  // Pide la lista a java
   cargarCiclos() {
     this.cicloService.getCiclos().subscribe({
       next: (datos) => {
@@ -55,11 +62,56 @@ export class Ciclos implements OnInit {
           this.cicloForm.reset();
           this.cargarCiclos(); 
         },
-        error: (err: any) => { // <-- Le agregamos ": any"
-          alert('Error: ' + (err.error?.error || 'No se pudo crear el ciclo'));
-        }
+        error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo crear el ciclo'))
       });
     }
+  }
+
+  // Cargar datos al modal
+  abrirModalEdicion(ciclo: any) {
+    let inicioFormateada = '';
+    let finFormateada = '';
+
+    if (ciclo.fechaInicio && Array.isArray(ciclo.fechaInicio)) {
+      inicioFormateada = `${ciclo.fechaInicio[0]}-${ciclo.fechaInicio[1].toString().padStart(2, '0')}-${ciclo.fechaInicio[2].toString().padStart(2, '0')}`;
+    } else {
+        inicioFormateada = ciclo.fechaInicio;
+    }
+
+    if (ciclo.fechaFin && Array.isArray(ciclo.fechaFin)) {
+      finFormateada = `${ciclo.fechaFin[0]}-${ciclo.fechaFin[1].toString().padStart(2, '0')}-${ciclo.fechaFin[2].toString().padStart(2, '0')}`;
+    } else {
+        finFormateada = ciclo.fechaFin;
+    }
+
+    this.cicloEditForm.patchValue({
+      idCiclo: ciclo.idCiclo,
+      anio: ciclo.anio,
+      fechaInicio: inicioFormateada,
+      fechaFin: finFormateada
+    });
+  }
+
+  // Actualizar ciclo
+  actualizarCiclo() {
+    if (this.cicloEditForm.invalid) return;
+
+    const formularioEditado = this.cicloEditForm.getRawValue();
+    const id = formularioEditado.idCiclo;
+
+    const inf = {
+      anio: Number(formularioEditado.anio),
+      fechaInicio: formularioEditado.fechaInicio,
+      fechaFin: formularioEditado.fechaFin
+    };
+
+    this.cicloService.modificarCiclo(id, inf).subscribe({
+      next: () => {
+        alert('Ciclo actualizado exitosamente.');
+        this.cargarCiclos();
+      },
+      error: (err: any) => alert('Error al actualizar: ' + (err.error?.error || 'Intenta de nuevo.'))
+    });
   }
 
   // Cambiar estado
@@ -67,7 +119,7 @@ export class Ciclos implements OnInit {
     if(confirm('¿Estás seguro de abrir este ciclo?')) {
       this.cicloService.abrirCiclo(id).subscribe({
         next: () => this.cargarCiclos(),
-        error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo abrir')) // <-- Le agregamos ": any"
+        error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo abrir')) 
       });
     }
   }
@@ -76,7 +128,7 @@ export class Ciclos implements OnInit {
     if(confirm('¿Estás seguro de cerrar este ciclo?')) {
       this.cicloService.cerrarCiclo(id).subscribe({
         next: () => this.cargarCiclos(),
-        error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo cerrar')) // <-- Le agregamos ": any"
+        error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo cerrar')) 
       });
     }
   }

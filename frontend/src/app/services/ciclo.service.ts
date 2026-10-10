@@ -25,4 +25,8 @@ export class CicloService {
   cerrarCiclo(id: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/cerrar`, {});
   }
+  
+  modificarCiclo(id: number, datos: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, datos);
+  }
 }

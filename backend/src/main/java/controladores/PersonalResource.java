@@ -7,7 +7,7 @@ import enums.Rol;
 import excepciones.BDException;
 import modelos.Empleado;
 import modelos.Usuario;
-
+import java.time.LocalDate;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -24,6 +24,16 @@ public class PersonalResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registrarPersonal(RegistroPersonalDTO request) {
+        if (request.getNombres() == null || request.getNombres().trim().isEmpty()
+                || request.getApellidos() == null || request.getApellidos().trim().isEmpty()
+                || request.getDpi() == null || request.getDpi().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El DPI, nombres y apellidos no pueden estar vacíos.\"}").build();
+        }
+        if (request.getSalario() < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El salario no puede ser negativo.\"}").build();
+        }
         try {
             Empleado empleado = new Empleado();
             empleado.setDpi(request.getDpi());
@@ -96,6 +106,46 @@ public class PersonalResource {
             return Response.ok(empleadoDAO.listarPaginado(1, 100)).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response modificarPersonal(@PathParam("id") int idEmpleado, RegistroPersonalDTO request) {
+        if (request.getNombres() == null || request.getNombres().trim().isEmpty()
+                || request.getApellidos() == null || request.getApellidos().trim().isEmpty()
+                || request.getDpi() == null || request.getDpi().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El DPI, nombres y apellidos no pueden estar vacíos.\"}").build();
+        }
+        if (request.getSalario() < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El salario no puede ser negativo.\"}").build();
+        }
+        try {
+            Empleado empleado = new Empleado();
+            empleado.setIdEmpleado(idEmpleado);
+            empleado.setDpi(request.getDpi());
+            empleado.setNombres(request.getNombres());
+            empleado.setApellidos(request.getApellidos());
+            empleado.setPuesto(request.getPuesto());
+            empleado.setFechaContratacion(request.getFechaContratacion());
+            empleado.setSalario(request.getSalario());
+
+            boolean modificado = empleadoDAO.modificarEmpleado(empleado);
+
+            if (modificado) {
+                return Response.ok("{\"mensaje\":\"Empleado modificado exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Empleado no encontrado.\"}").build();
+            }
+
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
 }

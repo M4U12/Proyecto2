@@ -119,4 +119,21 @@ public class CicloLectivoDAO {
 
         return listaCiclos;
     }
+
+    public boolean modificarCiclo(CicloLectivo ciclo) throws BDException {
+        String query = "UPDATE ciclo_lectivo SET anio = ?, fecha_inicio = ?, fecha_fin = ? WHERE id_ciclo = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, ciclo.getAnio());
+            ps.setObject(2, ciclo.getFechaInicio());
+            ps.setObject(3, ciclo.getFechaFin());
+            ps.setInt(4, ciclo.getIdCiclo());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            throw new BDException("Error al modificar el ciclo lectivo: " + e.getMessage(), e);
+        }
+    }
 }

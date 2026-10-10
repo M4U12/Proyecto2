@@ -23,12 +23,21 @@ public class CarreraResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registrarCarrera(CarreraRequestDTO request) {
+        if (request.getCodigo() == null || request.getCodigo().trim().isEmpty()
+                || request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El código y el nombre no pueden estar vacíos.\"}").build();
+        }
+        if (request.getDuracionAnios() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"La duración en años debe ser mayor a 0.\"}").build();
+        }
         try {
             Carrera carrera = new Carrera();
             carrera.setCodigo(request.getCodigo());
             carrera.setNombre(request.getNombre());
             carrera.setDuracionAnios(request.getDuracionAnios());
-            carrera.setEstado(true); 
+            carrera.setEstado(true);
 
             boolean registrado = carreraDAO.crearCarrera(carrera);
 
@@ -52,6 +61,15 @@ public class CarreraResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response modificarCarrera(@PathParam("id") int idCarrera, CarreraRequestDTO request) {
+        if (request.getCodigo() == null || request.getCodigo().trim().isEmpty()
+                || request.getNombre() == null || request.getNombre().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El código y el nombre no pueden estar vacíos.\"}").build();
+        }
+        if (request.getDuracionAnios() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"La duración en años debe ser mayor a 0.\"}").build();
+        }
         try {
             Carrera carrera = new Carrera();
             carrera.setIdCarrera(idCarrera);

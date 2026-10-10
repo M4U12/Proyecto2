@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public class RegistroPersonalDTO {
 
     // datos del eempleado 
+    private int idEmpleado;
     private String dpi;
     private String nombres;
     private String apellidos;
@@ -88,4 +89,13 @@ public class RegistroPersonalDTO {
     public void setRol(String rol) {
         this.rol = rol;
     }
+
+    public int getIdEmpleado() {
+        return idEmpleado;
+    }
+
+    public void setIdEmpleado(int idEmpleado) {
+        this.idEmpleado = idEmpleado;
+    }
+    
 }

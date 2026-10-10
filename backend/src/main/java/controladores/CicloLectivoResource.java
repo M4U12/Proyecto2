@@ -127,4 +127,36 @@ public class CicloLectivoResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    // Modificar Ciclo Lectivo
+    @PUT
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response modificarCiclo(@PathParam("id") int idCiclo, CrearCicloRequest request) {
+        if (request.getAnio() < 2026) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El año lectivo debe ser un número positivo y mayor o igual a 2026.\"}").build();
+        }
+        try {
+            CicloLectivo ciclo = new CicloLectivo();
+            ciclo.setIdCiclo(idCiclo);
+            ciclo.setAnio(request.getAnio());
+            ciclo.setFechaInicio(request.getFechaInicio()); 
+            ciclo.setFechaFin(request.getFechaFin());
+
+            boolean modificado = cicloDAO.modificarCiclo(ciclo);
+
+            if (modificado) {
+                return Response.ok("{\"mensaje\":\"Ciclo lectivo modificado exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Ciclo no encontrado.\"}").build();
+            }
+
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

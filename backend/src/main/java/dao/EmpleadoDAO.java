@@ -139,21 +139,21 @@ public class EmpleadoDAO {
     }
 
     public boolean modificarEmpleado(Empleado empleado) throws BDException {
-        String query = "UPDATE empleado SET nombres = ?, apellidos = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
+        String query = "UPDATE empleado SET dpi = ?, nombres = ?, apellidos = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
 
         try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
-
-            ps.setString(1, empleado.getNombres());
-            ps.setString(2, empleado.getApellidos());
-            ps.setString(3, empleado.getPuesto());
-            ps.setObject(4, empleado.getFechaContratacion());
-            ps.setDouble(5, empleado.getSalario());
-            ps.setInt(6, empleado.getIdEmpleado());
+            ps.setString(1, empleado.getDpi());
+            ps.setString(2, empleado.getNombres());
+            ps.setString(3, empleado.getApellidos());
+            ps.setString(4, empleado.getPuesto());
+            ps.setObject(5, empleado.getFechaContratacion());
+            ps.setDouble(6, empleado.getSalario());
+            ps.setInt(7, empleado.getIdEmpleado());
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            throw new BDException("Error al modificar el empleado: " + e.getMessage(), e);
+            throw new BDException("Error al modificar el empleado (¿DPI duplicado?): " + e.getMessage(), e);
         }
     }
 

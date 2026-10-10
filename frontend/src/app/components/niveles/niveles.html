@@ -1,0 +1,87 @@
+<!-- TABLA DE NIVELES EDUCATIVOS -->
+<div class="glass-panel p-4">
+  <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-layers me-2"></i>Niveles Educativos Oficiales</h5>
+  <div class="table-responsive">
+    <table class="table glass-table text-white">
+      <thead>
+        <tr>
+          <th>Nivel Educativo</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listaNiveles.length === 0">
+          <td colspan="5" class="text-center text-white-50 py-3">Cargando niveles...</td>
+        </tr>
+
+        <tr *ngFor="let nivel of listaNiveles">
+          <td><span class="badge text-white border border-secondary">{{ nivel.nivel }}</span></td>
+          <td class="text-white-50">{{ nivel.descripcion || 'Sin descripción asignada' }}</td>
+          <td>
+            <span class="badge bg-opacity-75" 
+                  [ngClass]="{'bg-success': nivel.estado, 'bg-danger': !nivel.estado}">
+              {{ nivel.estado ? 'ACTIVO' : 'INACTIVO' }}
+            </span>
+          </td>
+          <td>
+            <!-- Botón Editar -->
+            <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Descripción" 
+                    data-bs-toggle="modal" data-bs-target="#modalEditarNivel" (click)="abrirModalEdicion(nivel)">
+              <i class="bi bi-pencil"></i>
+            </button>
+
+            <!-- Botones de estado -->
+            <button *ngIf="!nivel.estado" (click)="cambiarEstado(nivel.idNivel, nivel.estado)" 
+              class="btn btn-sm glass-btn-action text-success me-2" title="Activar Nivel">
+              <i class="bi bi-check-circle"></i>
+            </button>
+            
+            <button *ngIf="nivel.estado" (click)="cambiarEstado(nivel.idNivel, nivel.estado)" 
+              class="btn btn-sm glass-btn-action text-danger" title="Desactivar Nivel">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL PARA EDITAR DESCRIPCIÓN         -->
+<div class="modal fade" id="modalEditarNivel" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-card-text me-2"></i>Editar Descripción del Nivel</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <form [formGroup]="nivelEditForm">
+          <div class="mb-3">
+            <label class="text-white-50 small mb-1">Nivel Educativo (Fijo)</label>
+            <input type="text" class="form-control glass-input text-white-50" formControlName="nivel">
+          </div>
+          
+          <div class="mb-3">
+            <label class="text-white-50 small mb-1">Descripción</label>
+            <textarea class="form-control glass-input text-white" formControlName="descripcion" rows="4" placeholder="Agrega una descripción para este nivel..."></textarea>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="actualizarNivel()" [disabled]="nivelEditForm.invalid">
+          Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

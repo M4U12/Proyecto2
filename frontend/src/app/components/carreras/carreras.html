@@ -1,0 +1,126 @@
+<!-- FORMULARIO PRINCIPAL DE REGISTRO (CU15) -->
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-journal-plus me-2"></i> Registrar Nueva Carrera
+  </h4>
+  
+  <form class="row g-3" [formGroup]="carreraForm" (ngSubmit)="guardarCarrera()">
+    
+    <div class="col-md-4">
+      <label class="text-white-50 small mb-1">Código de Carrera</label>
+      <input type="text" class="form-control glass-input text-white" formControlName="codigo" placeholder="Ej. BAC-COMP">
+    </div>
+    
+    <div class="col-md-5">
+      <label class="text-white-50 small mb-1">Nombre Oficial</label>
+      <input type="text" class="form-control glass-input text-white" formControlName="nombre" placeholder="Ej. Bachillerato en Computación">
+    </div>
+    
+    <div class="col-md-3">
+      <label class="text-white-50 small mb-1">Duración (Años)</label>
+      <input type="number" class="form-control glass-input text-white" formControlName="duracionAnios" (keypress)="soloNumeros($event)" min="1" max="6">
+    </div>
+    
+    <div class="col-12 text-end mt-4">
+      <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4 tracking-wide" [disabled]="carreraForm.invalid">
+        GUARDAR CARRERA
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- TABLA DE CARRERAS -->
+<div class="glass-panel p-4">
+  <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-mortarboard me-2"></i>Catálogo de Carreras</h5>
+  <div class="table-responsive">
+    <table class="table glass-table text-white">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre Oficial</th>
+          <th>Duración</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listaCarreras.length === 0">
+          <td colspan="5" class="text-center text-white-50 py-3">No hay carreras registradas.</td>
+        </tr>
+
+        <tr *ngFor="let carrera of listaCarreras">
+          <td><span class="badge text-white border border-secondary">{{ carrera.codigo }}</span></td>
+          <td>{{ carrera.nombre }}</td>
+          <td>{{ carrera.duracionAnios }} {{ carrera.duracionAnios === 1 ? 'año' : 'años' }}</td>
+          <td>
+            <span class="badge bg-opacity-75" 
+                  [ngClass]="{'bg-success': carrera.estado, 'bg-danger': !carrera.estado}">
+              {{ carrera.estado ? 'ACTIVA' : 'INACTIVA' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Carrera" 
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCarrera" (click)="abrirModalEdicion(carrera)">
+              <i class="bi bi-pencil"></i>
+            </button>
+
+            <button *ngIf="!carrera.estado" (click)="cambiarEstado(carrera.idCarrera, carrera.estado)" 
+              class="btn btn-sm glass-btn-action text-success me-2" title="Activar">
+              <i class="bi bi-check-circle"></i>
+            </button>
+            
+            <button *ngIf="carrera.estado" (click)="cambiarEstado(carrera.idCarrera, carrera.estado)" 
+              class="btn btn-sm glass-btn-action text-danger" title="Desactivar">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL PARA EDICIÓN   -->
+<div class="modal fade" id="modalEditarCarrera" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-pencil-square me-2"></i>Editar Datos de la Carrera</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <form class="row g-3" [formGroup]="carreraEditForm">
+          
+          <div class="col-md-4">
+            <label class="text-white-50 small mb-1">Código de Carrera</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="codigo">
+          </div>
+          
+          <div class="col-md-5">
+            <label class="text-white-50 small mb-1">Nombre Oficial</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="nombre">
+          </div>
+          
+          <div class="col-md-3">
+            <label class="text-white-50 small mb-1">Duración (Años)</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="duracionAnios" (keypress)="soloNumeros($event)" min="1" max="6">
+          </div>
+
+        </form>
+      </div>
+      
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="actualizarCarrera()" [disabled]="carreraEditForm.invalid">
+          Actualizar Datos
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
