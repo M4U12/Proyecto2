@@ -118,6 +118,7 @@ public class CarreraResource {
 
     // Listar carreras paginadas
     @GET
+    @Secured
     @Produces(MediaType.APPLICATION_JSON)
     public Response listarCarreras(@QueryParam("pagina") @DefaultValue("1") int pagina,
             @QueryParam("limite") @DefaultValue("10") int limite) {

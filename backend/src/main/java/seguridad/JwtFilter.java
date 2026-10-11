@@ -23,7 +23,7 @@ public class JwtFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
+        System.out.println("---> EL FILTRO JWT SE ESTÁ EJECUTANDO PARA: " + requestContext.getUriInfo().getPath());
         if (requestContext.getMethod().equalsIgnoreCase("OPTIONS")) {
             return;
         }

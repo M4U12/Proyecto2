@@ -1,4 +1,4 @@
-package config;
+package com.mycompany.backend.resources;
 
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -6,15 +6,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 @ApplicationPath("api")
-public class RestConfiguration extends Application {
+public class JakartaRestConfiguration extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new HashSet<>();
         
-        // para que no desaparezcan los datos al recargar
+        // ¡Registramos el filtro de seguridad aquí!
+        resources.add(seguridad.JwtFilter.class);
+        
+        // Registramos también tu filtro CORS
         resources.add(config.CorsFilter.class);
-        resources.add(seguridad.JwtFilter.class); 
+        
+        // Tus controladores
         resources.add(controladores.AuthResource.class);
         resources.add(controladores.CarreraResource.class);
         resources.add(controladores.CicloLectivoResource.class);
