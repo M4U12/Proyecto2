@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common'; // <-- para que funcione el *ngIf
+import { CommonModule } from '@angular/common'; 
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth'; 
 
 @Component({
   selector: 'app-dashboard',
@@ -11,20 +12,15 @@ import { Router } from '@angular/router';
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
-  rolUsuario: string | null = ''; 
-  constructor(private router: Router) {}
+  rolUsuario: string = ''; 
+
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
-    const usuarioGuardado = localStorage.getItem('usuarioLogueado');
-    
-    if (usuarioGuardado) {
-      const usuario = JSON.parse(usuarioGuardado);
-      this.rolUsuario = usuario.rol; 
-    }
+    this.rolUsuario = localStorage.getItem('rol') || ''; 
   }
 
   cerrarSesion() {
-    localStorage.removeItem('usuarioLogueado');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

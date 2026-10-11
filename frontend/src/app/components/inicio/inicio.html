@@ -1,0 +1,65 @@
+<div class="vh-100 d-flex flex-column custom-global-bg align-items-center justify-content-center text-center px-3">
+
+  <div class="p-5" style="max-width: 1000px; width: 100%;">
+    <i class="bi bi-bank2 text-white opacity-75 mb-4" style="font-size: 4rem;"></i>
+    
+    <h1 class="text-white display-5 fw-light tracking-wide mb-3">
+      Bienvenidos a <span class="fw-bold">Coden School</span>
+    </h1>
+    <p class="text-white-50 fs-5 mb-5">
+      Plataforma integral de gestión académica. Consulta nuestra oferta educativa o accede a tu portal administrativo.
+    </p>
+
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="text-white-50 mb-5">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Cargando oferta educativa...
+    </div>
+
+    <!-- Información Dinámica desde BD -->
+    <div *ngIf="!cargando" class="row g-4 text-start mb-5">
+      <!-- Panel de Niveles -->
+      <div class="col-md-6">
+        <div class="glass-panel p-4 h-100">
+          <h5 class="text-warning fw-light tracking-wide mb-4"><i class="bi bi-layers me-2"></i>Niveles Educativos</h5>
+          
+          <ul class="text-white-50 mb-0 small" *ngIf="nivelesActivos.length > 0">
+            <li *ngFor="let nivel of nivelesActivos" class="mb-2">
+              {{ nivel.descripcion }}
+            </li>
+          </ul>
+          
+          <p class="text-secondary small mb-0 mt-2" *ngIf="nivelesActivos.length === 0">
+            <i class="bi bi-info-circle me-1"></i> Niveles en actualización.
+          </p>
+        </div>
+      </div>  
+
+      <!-- Panel de Carreras -->
+      <div class="col-md-6">
+        <!-- Reemplazamos el fondo gris por tu clase glass-panel -->
+        <div class="glass-panel p-4 h-100">
+          <h5 class="text-info fw-light tracking-wide mb-4"><i class="bi bi-journal-bookmark me-2"></i>Nuestras Carreras</h5>
+          
+          <ul class="text-white-50 mb-0 small" *ngIf="carrerasActivas.length > 0">
+            <li *ngFor="let carrera of carrerasActivas" class="mb-2">
+              {{ carrera.nombre }} <span class="text-white-50 opacity-50" style="font-size: 0.75rem;">({{ carrera.duracionAnios }} años)</span>
+            </li>
+          </ul>
+          
+          <p class="text-secondary small mb-0 mt-2" *ngIf="carrerasActivas.length === 0">
+            <i class="bi bi-info-circle me-1"></i> Oferta de carreras en actualización.
+          </p>
+        </div>
+      </div>
+      
+      
+
+    </div>
+
+    <a *ngIf="mostrarBotonLogin" routerLink="/login" class="btn btn-primary glass-btn rounded-pill px-5 py-2 fs-5 tracking-wide mt-3">
+      <i class="bi bi-box-arrow-in-right me-2"></i> INICIAR SESIÓN
+    </a>
+  </div>
+
+</div>

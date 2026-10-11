@@ -1,9 +1,3 @@
-/* Fondo Global - Mantiene el tono de la pantalla de Login */
-.custom-global-bg {
-  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-  background-size: cover;
-}
-
 .tracking-wide {
   letter-spacing: 1.5px;
 }

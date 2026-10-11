@@ -1,0 +1,145 @@
+<!-- NAVEGACIÓN DE PESTAÑAS -->
+<ul class="nav nav-tabs mb-4 border-secondary">
+  <li class="nav-item">
+    <a class="nav-link cursor-pointer" 
+       [ngClass]="{'active bg-dark bg-opacity-50 text-info border-secondary border-bottom-0': modoVista === 'asignar', 'text-white-50 border-0': modoVista !== 'asignar'}" 
+       (click)="cambiarPestana('asignar')">
+       <i class="bi bi-pencil-square me-2"></i>Asignar Cursos
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link cursor-pointer" 
+       [ngClass]="{'active bg-dark bg-opacity-50 text-info border-secondary border-bottom-0': modoVista === 'reporte', 'text-white-50 border-0': modoVista !== 'reporte'}" 
+       (click)="cambiarPestana('reporte')">
+       <i class="bi bi-card-checklist me-2"></i>Ver Malla Completa
+    </a>
+  </li>
+</ul>
+
+<!-- ============================================== -->
+<!-- PESTAÑA 1: ASIGNACIÓN DE CURRÍCULO             -->
+<!-- ============================================== -->
+<div *ngIf="modoVista === 'asignar'">
+  
+  <div class="glass-panel p-4 mb-4">
+    <h5 class="text-white fw-light mb-4"><i class="bi bi-sliders me-2"></i> Parámetros de Asignación</h5>
+    
+    <form [formGroup]="parametrosForm" (ngSubmit)="cargarMallaCurricular()" class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="text-white-50 small mb-1">Ciclo Lectivo</label>
+        <select class="form-select glass-input text-white" formControlName="idCiclo">
+          <option value="" class="text-dark" disabled selected>Seleccione el ciclo...</option>
+          <option class="text-dark" *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo">
+            Año {{ ciclo.anio }} - ({{ ciclo.estado }})
+          </option>
+        </select>
+      </div>
+      
+      <div class="col-md-5">
+        <label class="text-white-50 small mb-1">Grado Destino</label>
+        <select class="form-select glass-input text-white" formControlName="idGrado">
+          <option value="" class="text-dark" disabled selected>Seleccione un grado...</option>
+          <option class="text-dark" *ngFor="let grado of listaGrados" [value]="grado.idGrado">
+            {{ grado.nombre }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-info w-100 rounded-pill" [disabled]="parametrosForm.invalid">
+          <i class="bi bi-search me-2"></i> Cargar Malla
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="glass-panel p-4" *ngIf="mallaCargada">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+      <h6 class="text-white fw-light m-0"><i class="bi bi-ui-checks-grid me-2"></i> Materias Disponibles</h6>
+      <span class="badge bg-info text-dark rounded-pill px-3 py-2">{{ cursosSeleccionados.size }} Asignadas</span>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 text-center" *ngIf="listaCursosActivos.length === 0">
+        <p class="text-white-50">No hay materias activas en el sistema.</p>
+      </div>
+
+      <div class="col-md-4 col-sm-6" *ngFor="let curso of listaCursosActivos">
+        <div class="bg-dark bg-opacity-25 p-3 rounded border border-secondary h-100 d-flex align-items-center">
+          <div class="form-check form-switch m-0 w-100">
+            <input class="form-check-input" type="checkbox" style="cursor: pointer;"
+                   [id]="'switch_' + curso.idCurso" [checked]="cursosSeleccionados.has(curso.idCurso)" (change)="toggleCurso(curso.idCurso, $event)">
+            <label class="form-check-label text-white-50 ms-2 w-100" [for]="'switch_' + curso.idCurso" style="cursor: pointer;">
+              <span class="badge border border-secondary text-white me-2">{{ curso.codigo }}</span>
+              <span [ngClass]="{'text-white': cursosSeleccionados.has(curso.idCurso)}">{{ curso.nombre }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end border-top border-secondary pt-4">
+      <button type="button" class="btn btn-primary glass-btn rounded-pill px-5 tracking-wide" 
+              (click)="guardarCurriculo()" [disabled]="cursosSeleccionados.size === 0">
+        <i class="bi bi-save me-2"></i> GUARDAR CURRÍCULO
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- PESTAÑA 2: REPORTE GENERAL DE MALLA            -->
+<!-- ============================================== -->
+<div *ngIf="modoVista === 'reporte'">
+  
+  <div class="glass-panel p-4 mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <label class="text-white-50 small mb-1">Seleccione Ciclo Lectivo a Consultar</label>
+        <select class="form-select glass-input text-white" (change)="cargarReporteGeneral($event)">
+          <option value="" class="text-dark" selected>Elegir ciclo...</option>
+          <option class="text-dark" *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo">
+            Año {{ ciclo.anio }} - ({{ ciclo.estado }})
+          </option>
+        </select>
+      </div>
+      <div class="col-md-8 text-end">
+        <span *ngIf="cicloSeleccionadoReporte" class="badge bg-secondary text-white p-2">
+          Grados Configurables Encontrados: {{ mallaGeneral.length }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4" *ngIf="cicloSeleccionadoReporte">
+    <div class="col-12 text-center py-5" *ngIf="mallaGeneral.length === 0">
+      <i class="bi bi-folder2-open display-4 text-white-50 mb-3 d-block"></i>
+      <h5 class="text-white-50">Este ciclo aún no tiene currículo asignado.</h5>
+    </div>
+
+    <!-- TARJETAS DE GRADOS -->
+    <div class="col-md-6 col-lg-4" *ngFor="let grado of mallaGeneral">
+      <div class="glass-panel p-0 h-100 overflow-hidden">
+        
+        <div class="bg-dark bg-opacity-50 p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
+          <h6 class="text-white m-0">{{ grado.grado }}</h6>
+          <span class="badge border border-info text-info rounded-pill">{{ grado.cursos.length }} materias</span>
+        </div>
+        
+        <div class="p-3" style="max-height: 250px; overflow-y: auto;">
+          <ul class="list-group list-group-flush bg-transparent">
+            <li class="list-group-item bg-transparent text-white-50 border-secondary px-0 py-2 d-flex align-items-center" *ngFor="let c of grado.cursos">
+              <i class="bi bi-journal-check text-success me-3"></i>
+              <div>
+                <small class="d-block text-white">{{ c.nombre }}</small>
+                <small style="font-size: 0.75rem;">{{ c.codigo }}</small>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

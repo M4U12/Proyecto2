@@ -1,10 +1,6 @@
-<!-- Fondo degradado formal a pantalla completa -->
 <div class="d-flex align-items-center justify-content-center vh-100 custom-bg">
-  
-  <!-- Tarjeta con efecto Glassmorphism -->
-  <div class="glass-card p-4 p-sm-5 mx-3 mx-sm-0">
+  <div class="glass-card p-4 p-sm-5 mx-3 mx-sm-0" style="width: 100%; max-width: 450px;">
     
-    <!-- Icono de Usuario (Avatar) -->
     <div class="text-center mb-4">
       <div class="avatar-circle mx-auto d-flex align-items-center justify-content-center mb-3">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="rgba(255,255,255,0.7)" viewBox="0 0 16 16">
@@ -15,35 +11,54 @@
       <h5 class="text-white fw-light tracking-wide">SISTEMA ACADÉMICO</h5>
     </div>
     
-    <div *ngIf="mensajeError" class="alert alert-danger glass-alert py-2 text-center" role="alert">
+    <div *ngIf="mensajeError" class="alert alert-danger glass-alert py-2 text-center small" role="alert">
       {{ mensajeError }}
     </div>
 
-    <!-- Formulario Reactivo -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      
-      <!-- Input Correo -->
+    <!-- PANEL 1: LOGIN -->
+    <form *ngIf="!modoRecuperacion" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="input-container mb-4">
         <i class="bi bi-envelope input-icon text-white-50"></i>
-        <input type="email" class="form-control glass-input" id="correo" formControlName="correo" placeholder="Correo Electrónico">
+        <input type="email" class="form-control glass-input" formControlName="correo" name="correo" placeholder="Correo Electrónico">
       </div>
 
-      <!-- Input Contraseña -->
       <div class="input-container mb-5">
         <i class="bi bi-lock input-icon text-white-50"></i>
-        <input type="password" class="form-control glass-input" id="password" formControlName="password" placeholder="Contraseña">
+        <input type="password" class="form-control glass-input" formControlName="password" placeholder="Contraseña">
       </div>
       
-      <!-- Botón -->
-      <button type="submit" class="btn btn-primary w-100 rounded-pill glass-btn fw-bold tracking-wide" [disabled]="loginForm.invalid">
-        INICIAR SESIÓN
+      <button type="submit" class="btn btn-primary w-100 rounded-pill glass-btn fw-bold tracking-wide" 
+              [disabled]="loginForm.invalid || cargando">
+        {{ cargando ? 'VERIFICANDO...' : 'INICIAR SESIÓN' }}
       </button>
-      
 
-      <div class="d-flex justify-content-between mt-4 px-1">
-        <a href="#" class="text-white-50 text-decoration-none small hover-white">Registrarse</a>
-        <a href="#" class="text-white-50 text-decoration-none small hover-white">¿Olvidaste tu contraseña?</a>
+      <div class="d-flex justify-content-end mt-4 px-1">
+        <a href="javascript:void(0)" class="text-white-50 text-decoration-none small hover-white" (click)="cambiarModo()">¿Olvidaste tu contraseña?</a>
       </div>  
     </form>
+
+    <!-- PANEL 2: RECUPERACIÓN -->
+    <form *ngIf="modoRecuperacion" [formGroup]="recuperarForm" (ngSubmit)="enviarRecuperacion()">
+      <div class="text-white-50 small mb-4 text-center">
+        Ingresa tu correo institucional para recibir una clave temporal.
+      </div>
+
+      <div class="input-container mb-5">
+        <i class="bi bi-envelope input-icon text-white-50"></i>
+        <input type="email" class="form-control glass-input" formControlName="correo" placeholder="Correo Electrónico">
+      </div>
+      
+      <button type="submit" class="btn btn-warning w-100 rounded-pill glass-btn fw-bold tracking-wide text-dark mb-4" 
+              [disabled]="recuperarForm.invalid || cargando">
+        {{ cargando ? 'ENVIANDO...' : 'ENVIAR CLAVE' }}
+      </button>
+
+      <div class="text-center">
+        <a href="javascript:void(0)" class="text-white-50 text-decoration-none small hover-white" (click)="cambiarModo()">
+          <i class="bi bi-arrow-left me-1"></i> Volver al login
+        </a>
+      </div>
+    </form>
+
   </div>
 </div>

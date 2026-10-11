@@ -77,4 +77,17 @@ public class CurriculoResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @GET
+    @Path("/ciclo/{idCiclo}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerMallaCompleta(@PathParam("idCiclo") int idCiclo) {
+        try {
+            List<dto.MallaCurricularDTO> malla = curriculoDAO.obtenerMallaCompletaPorCiclo(idCiclo);
+            return Response.ok(malla).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

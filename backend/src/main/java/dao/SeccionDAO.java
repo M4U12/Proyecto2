@@ -119,4 +119,18 @@ public class SeccionDAO {
 
         return listaSecciones;
     }
+    
+    public boolean eliminarSeccion(int idSeccion) throws BDException {
+        String query = "DELETE FROM seccion WHERE id_seccion = ?";
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setInt(1, idSeccion);
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            // aquí es se detendrá el borrado si hay alumnos inscritos (iteración 2)
+            throw new BDException("No se puede eliminar la sección. Es posible que ya existan alumnos inscritos en ella.", e);
+        }
+    }
 }

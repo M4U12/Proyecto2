@@ -101,9 +101,10 @@ public class PersonalResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listarPersonal() {
+    public Response listarPersonal(@QueryParam("pagina") @DefaultValue("1") int pagina,
+                                   @QueryParam("limite") @DefaultValue("10") int limite) {
         try {
-            return Response.ok(empleadoDAO.listarPaginado(1, 100)).build();
+            return Response.ok(empleadoDAO.listarPaginado(pagina, limite)).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
@@ -143,6 +144,25 @@ public class PersonalResource {
                         .entity("{\"error\":\"Empleado no encontrado.\"}").build();
             }
 
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerPersonalPorId(@PathParam("id") int idEmpleado) {
+        try {
+            java.util.Optional<Empleado> empleadoOpt = empleadoDAO.buscarPorId(idEmpleado);
+            
+            if (empleadoOpt.isPresent()) {
+                return Response.ok(empleadoOpt.get()).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Empleado no encontrado.\"}").build();
+            }
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();

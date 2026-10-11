@@ -11,6 +11,7 @@ public class Empleado {
     private LocalDate fechaContratacion;
     private double salario;
     private boolean estado;
+    private String rolSistema;
 
     public Empleado() {
     }
@@ -88,5 +89,13 @@ public class Empleado {
 
     public void setEstado(boolean estado) {
         this.estado = estado;
+    }
+    
+    public String getRolSistema() {
+        return rolSistema;
+    }
+
+    public void setRolSistema(String rolSistema) {
+        this.rolSistema = rolSistema;
     }
 }

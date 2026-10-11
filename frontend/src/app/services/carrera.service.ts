@@ -14,8 +14,8 @@ export class CarreraService {
     return this.http.post(this.apiUrl, datos);
   }
 
-  getCarreras(): Observable<any> {
-    return this.http.get(`${this.apiUrl}?pagina=1&limite=100`);
+  getCarreras(pagina: number = 1, limite: number = 10): Observable<any> {
+    return this.http.get(`${this.apiUrl}?pagina=${pagina}&limite=${limite}`);
   }
 
   modificarCarrera(id: number, datos: any): Observable<any> {

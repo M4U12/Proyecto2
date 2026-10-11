@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Base64; 
+import java.util.Base64;
 import modelos.Empleado;
 import modelos.Usuario;
 
@@ -174,7 +174,10 @@ public class EmpleadoDAO {
 
     public List<Empleado> listarPaginado(int pagina, int tamanoPagina) throws BDException {
         List<Empleado> listaEmpleados = new ArrayList<>();
-        String query = "SELECT * FROM empleado LIMIT ? OFFSET ?";
+
+        String query = "SELECT e.*, u.rol FROM empleado e "
+                + "LEFT JOIN usuario u ON e.id_empleado = u.id_empleado "
+                + "LIMIT ? OFFSET ?";
 
         int offset = (pagina - 1) * tamanoPagina;
 
@@ -194,6 +197,10 @@ public class EmpleadoDAO {
                             rs.getObject("fecha_contratacion", LocalDate.class),
                             rs.getDouble("salario"),
                             rs.getBoolean("estado"));
+                    String rol = rs.getString("rol");
+                    if (!rs.wasNull()) {
+                        empleado.setRolSistema(rol);
+                    }
 
                     listaEmpleados.add(empleado);
                 }
@@ -203,5 +210,34 @@ public class EmpleadoDAO {
         }
 
         return listaEmpleados;
+    }
+    
+    public Optional<Empleado> buscarPorId(int idEmpleado) throws BDException {
+        String query = "SELECT * FROM empleado WHERE id_empleado = ?";
+        Empleado empleado = null;
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setInt(1, idEmpleado);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    empleado = new Empleado();
+                    empleado.setIdEmpleado(rs.getInt("id_empleado"));
+                    empleado.setDpi(rs.getString("dpi"));
+                    empleado.setNombres(rs.getString("nombres"));
+                    empleado.setApellidos(rs.getString("apellidos"));
+                    empleado.setPuesto(rs.getString("puesto"));
+                    empleado.setFechaContratacion(rs.getObject("fecha_contratacion", java.time.LocalDate.class));
+                    empleado.setSalario(rs.getDouble("salario"));
+                    empleado.setEstado(rs.getBoolean("estado"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al buscar el empleado por ID: " + e.getMessage(), e);
+        }
+
+        return Optional.ofNullable(empleado);
     }
 }

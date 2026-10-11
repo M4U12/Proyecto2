@@ -36,14 +36,23 @@ export class Ciclos implements OnInit {
     this.cargarCiclos();
   }
 
+  paginaActual: number = 1;
+  limitePorPagina: number = 5;
   cargarCiclos() {
-    this.cicloService.getCiclos().subscribe({
+    this.cicloService.getCiclos(this.paginaActual, this.limitePorPagina).subscribe({
       next: (datos) => {
         this.listaCiclos = datos;
         this.cdr.detectChanges(); 
       },
       error: (err: any) => console.error('Error al obtener ciclos:', err)
     });
+  }
+
+  cambiarPagina(valor: number) {
+    if (this.paginaActual + valor > 0) {
+      this.paginaActual += valor;
+      this.cargarCiclos();
+    }
   }
 
   soloNumeros(event: KeyboardEvent) {
@@ -60,6 +69,7 @@ export class Ciclos implements OnInit {
         next: (respuesta) => {
           alert('Ciclo creado exitosamente');
           this.cicloForm.reset();
+          this.paginaActual = 1;
           this.cargarCiclos(); 
         },
         error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo crear el ciclo'))

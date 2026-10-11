@@ -1,0 +1,249 @@
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { GradoService } from '../../services/grado.service';
+import { NivelService } from '../../services/nivel.service';
+import { CarreraService } from '../../services/carrera.service';
+import { SeccionService } from '../../services/seccion.service';
+
+@Component({
+  selector: 'app-grados',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './grados.html'
+})
+export class Grados implements OnInit {
+  gradoForm: FormGroup;
+  gradoEditForm: FormGroup;
+  nuevaSeccionForm: FormGroup;
+  listaGrados: any[] = [];
+  listaNiveles: any[] = [];
+  listaCarreras: any[] = [];
+  gradoSeleccionado: any = null; 
+  listaSeccionesGrado: any[] = [];
+
+  constructor(
+    private fb: FormBuilder,
+    private gradoService: GradoService,
+    private nivelService: NivelService,
+    private carreraService: CarreraService,
+    private seccionService: SeccionService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Registro de Grado y Secciones
+    this.gradoForm = this.fb.group({
+      nombre: ['', Validators.required],
+      idNivel: ['', Validators.required],
+      idCarrera: [{ value: '', disabled: true }], // Nace bloqueado
+      secciones: this.fb.array([]) 
+    });
+
+    // Edición de Grado
+    this.gradoEditForm = this.fb.group({
+      idGrado: [''],
+      nombre: ['', Validators.required],
+      idNivel: ['', Validators.required],
+      idCarrera: [{ value: '', disabled: true }] // Nace bloqueado
+    });
+
+    // Agregar sección 
+    this.nuevaSeccionForm = this.fb.group({
+      identificador: ['', Validators.required],
+      cupo: [30, [Validators.required, Validators.min(1)]]
+    });
+
+    //  PARA BLOQUEAR/DESBLOQUEAR LA CARRERA
+    this.gradoForm.get('idNivel')?.valueChanges.subscribe(id => this.verificarCarrera(id, this.gradoForm));
+    this.gradoEditForm.get('idNivel')?.valueChanges.subscribe(id => this.verificarCarrera(id, this.gradoEditForm));
+  }
+
+  ngOnInit(): void {
+    this.cargarCatalogos();
+    this.agregarSeccion(); 
+  }
+
+
+  cargarCatalogos() {
+    this.nivelService.getNiveles().subscribe(datos => {
+      this.listaNiveles = datos.filter((n: any) => n.estado === true);
+    });
+    this.carreraService.getCarreras().subscribe(datos => {
+      this.listaCarreras = datos.filter((c: any) => c.estado === true);
+    });
+    this.cargarGrados();
+  }
+
+  paginaActual: number = 1;
+  limitePorPagina: number = 5;
+  cargarGrados() {
+    this.gradoService.getGrados(this.paginaActual, this.limitePorPagina).subscribe({
+      next: (datos) => {
+        this.listaGrados = datos;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error al obtener grados:', err)
+    });
+  }
+
+  cambiarPagina(valor: number) {
+    if (this.paginaActual + valor > 0) {
+      this.paginaActual += valor;
+      this.cargarGrados();
+    }
+  }
+
+  getNombreNivel(idNivel: number): string {
+    const nivel = this.listaNiveles.find(n => n.idNivel === idNivel);
+    return nivel ? nivel.nivel : 'Desconocido';
+  }
+
+  getNombreCarrera(idCarrera: number): string {
+    if (!idCarrera) return 'No aplica';
+    const carrera = this.listaCarreras.find(c => c.idCarrera === idCarrera);
+    return carrera ? carrera.nombre : 'Desconocida';
+  }
+
+  verificarCarrera(idNivel: any, formulario: FormGroup) {
+    const nivelSeleccionado = this.listaNiveles.find(n => n.idNivel == idNivel);
+    const controlCarrera = formulario.get('idCarrera');
+    
+    if (nivelSeleccionado && nivelSeleccionado.nivel === 'DIVERSIFICADO') {
+      controlCarrera?.enable();
+    } else {
+      controlCarrera?.disable();
+      controlCarrera?.setValue(''); 
+    }
+  }
+
+
+  get secciones() {
+    return this.gradoForm.get('secciones') as FormArray;
+  }
+
+  agregarSeccion() {
+    const seccionGroup = this.fb.group({
+      identificador: ['', Validators.required],
+      cupo: [30, [Validators.required, Validators.min(1)]]
+    });
+    this.secciones.push(seccionGroup);
+  }
+
+  removerSeccion(index: number) {
+    if (this.secciones.length > 1) {
+      this.secciones.removeAt(index);
+    } else {
+      alert('Un grado debe tener al menos una sección obligatoria.');
+    }
+  }
+
+  guardarGrado() {
+    if (this.gradoForm.invalid) {
+      alert('Por favor completa todos los campos requeridos.');
+      return;
+    }
+
+    const formularioBruto = this.gradoForm.getRawValue();
+    
+    const inf = {
+      nombre: formularioBruto.nombre,
+      idNivel: Number(formularioBruto.idNivel),
+      idCarrera: formularioBruto.idCarrera ? Number(formularioBruto.idCarrera) : null,
+      secciones: formularioBruto.secciones
+    };
+
+    this.gradoService.registrarGrado(inf).subscribe({
+      next: () => {
+        alert('Grado y secciones registrados exitosamente.');
+        this.gradoForm.reset();
+        this.secciones.clear();
+        this.agregarSeccion(); 
+        this.paginaActual = 1;
+        this.cargarGrados();
+      },
+      error: (err) => alert('Error al guardar: ' + (err.error?.error || 'Revisa la consola'))
+    });
+  }
+
+
+  // EDICIÓN DE GRADO MODAL 1
+  abrirModalEdicion(grado: any) {
+    this.gradoEditForm.patchValue({
+      idGrado: grado.idGrado,
+      nombre: grado.nombre,
+      idNivel: grado.idNivel
+    });
+    this.gradoEditForm.patchValue({
+      idCarrera: grado.idCarrera || ''
+    });
+  }
+
+  actualizarGrado() {
+    if (this.gradoEditForm.invalid) return;
+
+    const formularioEditado = this.gradoEditForm.getRawValue();
+    const id = formularioEditado.idGrado;
+
+    const payload = {
+      nombre: formularioEditado.nombre,
+      idNivel: Number(formularioEditado.idNivel),
+      idCarrera: formularioEditado.idCarrera ? Number(formularioEditado.idCarrera) : null
+    };
+
+    this.gradoService.modificarGrado(id, payload).subscribe({
+      next: () => {
+        alert('Grado actualizado exitosamente.');
+        this.cargarGrados();
+      },
+      error: (err) => alert('Error al actualizar: ' + (err.error?.error || 'Intenta de nuevo.'))
+    });
+  }
+
+
+  // GESTIÓN DE SECCIONES INDIVIDUALES MODAL 2
+  abrirModalSecciones(grado: any) {
+    this.gradoSeleccionado = grado;
+    this.cargarSeccionesDelGradoSeleccionado();
+    this.nuevaSeccionForm.reset({ cupo: 30 });
+  }
+
+  cargarSeccionesDelGradoSeleccionado() {
+    if (!this.gradoSeleccionado) return;
+    
+    this.seccionService.getSeccionesPorGrado(this.gradoSeleccionado.idGrado).subscribe({
+      next: (datos) => {
+        this.listaSeccionesGrado = datos;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error al cargar secciones', err)
+    });
+  }
+
+  guardarNuevaSeccion() {
+    if (this.nuevaSeccionForm.invalid || !this.gradoSeleccionado) return;
+
+    const payload = {
+      idGrado: this.gradoSeleccionado.idGrado,
+      identificador: this.nuevaSeccionForm.value.identificador,
+      cupo: this.nuevaSeccionForm.value.cupo
+    };
+
+    this.seccionService.agregarSeccion(payload).subscribe({
+      next: () => {
+        this.cargarSeccionesDelGradoSeleccionado();
+        this.nuevaSeccionForm.reset({ cupo: 30 });
+      },
+      error: (err) => alert('Error: ' + (err.error?.error || 'Intenta de nuevo'))
+    });
+  }
+
+  eliminarSeccion(idSeccion: number) {
+    if (confirm('¿Estás seguro de eliminar esta sección?')) {
+      this.seccionService.eliminarSeccion(idSeccion).subscribe({
+        next: () => {
+          this.cargarSeccionesDelGradoSeleccionado();
+        },
+        error: (err) => alert('Error: ' + (err.error?.error || 'No se pudo eliminar'))
+      });
+    }
+  }
+}

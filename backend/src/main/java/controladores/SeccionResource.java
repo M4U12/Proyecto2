@@ -59,7 +59,6 @@ public class SeccionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response modificarSeccion(@PathParam("id") int idSeccion, SeccionDTO request) {
         try {
-            // REGLA DE NEGOCIO CU19: 
             // pendiente para la iteracion 2: comprueba que el nuevo cupo no sea menor a los alumnos ya inscritos en la sección."
             // con un COUNT de alumnos inscritos, si request.getCupo() < inscritos, se lanzara un BAD_REQUEST.
 
@@ -83,7 +82,6 @@ public class SeccionResource {
     }
 
 
-    // EXTRA: Listar secciones de un grado específico
     @GET
     @Path("/grado/{idGrado}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,6 +91,25 @@ public class SeccionResource {
             return Response.ok(secciones).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    // Eliminar sección
+    @DELETE
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response eliminarSeccion(@PathParam("id") int idSeccion) {
+        try {
+            boolean eliminado = seccionDAO.eliminarSeccion(idSeccion);
+            if (eliminado) {
+                return Response.ok("{\"mensaje\":\"Sección eliminada exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Sección no encontrada.\"}").build();
+            }
+        } catch (BDException e) {
+            return Response.status(Response.Status.CONFLICT)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }

@@ -10,8 +10,8 @@ export class CicloService {
 
   constructor(private http: HttpClient) { }
 
-  getCiclos(): Observable<any> {
-    return this.http.get(this.apiUrl);
+  getCiclos(pagina: number = 1, limite: number = 5): Observable<any> {
+    return this.http.get(`${this.apiUrl}?pagina=${pagina}&limite=${limite}`);
   }
 
   crearCiclo(ciclo: any): Observable<any> {

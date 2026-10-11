@@ -39,14 +39,23 @@ export class Carreras implements OnInit {
     this.cargarCarreras();
   }
 
+  paginaActual: number = 1;
+  limitePorPagina: number = 10;
   cargarCarreras() {
-    this.carreraService.getCarreras().subscribe({
+    this.carreraService.getCarreras(this.paginaActual, this.limitePorPagina).subscribe({
       next: (datos) => {
         this.listaCarreras = datos;
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al obtener carreras:', err)
     });
+  }
+
+  cambiarPagina(valor: number) {
+    if (this.paginaActual + valor > 0) {
+      this.paginaActual += valor;
+      this.cargarCarreras();
+    }
   }
 
   guardarCarrera() {
@@ -61,6 +70,7 @@ export class Carreras implements OnInit {
       next: () => {
         alert('Carrera registrada exitosamente.');
         this.carreraForm.reset();
+        this.paginaActual = 1;
         this.cargarCarreras();
       },
       error: (err) => alert('Error al registrar: ' + (err.error?.error || 'Intenta de nuevo.'))

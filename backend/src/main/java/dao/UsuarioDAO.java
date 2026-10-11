@@ -122,6 +122,21 @@ public class UsuarioDAO {
         }
     }
 
+    public boolean actualizarPasswordPorCorreo(String correo, String nuevaContrasena) throws BDException {
+        String query = "UPDATE usuario SET password = ? WHERE correo = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
+            String nuevaPasswordBase64 = Base64.getEncoder().encodeToString(nuevaContrasena.getBytes());
+            ps.setString(1, nuevaPasswordBase64);
+            ps.setString(2, correo);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new BDException("Error al actualizar la contraseña: " + e.getMessage(), e);
+        }
+    }
+
     public Optional<Usuario> buscarPorCorreo(String correo) throws BDException {
         String query = "SELECT * FROM usuario WHERE correo = ?";
         Usuario usuario = null;

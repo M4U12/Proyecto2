@@ -1,0 +1,242 @@
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-diagram-3 me-2"></i> Registrar Nuevo Grado y Secciones
+  </h4>
+  
+  <form [formGroup]="gradoForm" (ngSubmit)="guardarGrado()">
+    
+    <!-- DATOS DEL GRADO -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label class="text-white-50 small mb-1">Nombre del Grado</label>
+        <input type="text" class="form-control glass-input text-white" formControlName="nombre" placeholder="Ej. Primero, Segundo...">
+      </div>
+      
+      <div class="col-md-4">
+        <label class="text-white-50 small mb-1">Nivel Educativo</label>
+        <select class="form-select glass-input text-white" formControlName="idNivel">
+          <option value="" class="text-dark" disabled selected>Seleccione un nivel...</option>
+          <option class="text-dark" *ngFor="let nivel of listaNiveles" [value]="nivel.idNivel">
+            {{ nivel.nivel }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="text-white-50 small mb-1">Carrera (Solo Diversificado)</label>
+        <select class="form-select glass-input text-white" formControlName="idCarrera">
+          <option value="" class="text-dark">Ninguna / No aplica</option>
+          <option class="text-dark" *ngFor="let carrera of listaCarreras" [value]="carrera.idCarrera">
+            {{ carrera.nombre }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ZONA DINÁMICA DE SECCIONES -->
+    <div class="p-3 border border-secondary rounded bg-dark bg-opacity-25 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-white m-0"><i class="bi bi-collection me-2"></i>Secciones Asignadas</h6>
+        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" (click)="agregarSeccion()">
+          <i class="bi bi-plus-lg"></i> Agregar Sección
+        </button>
+      </div>
+
+      <div formArrayName="secciones">
+        <div class="row g-2 mb-2 align-items-end" *ngFor="let sec of secciones.controls; let i=index" [formGroupName]="i">
+          
+          <div class="col-md-5">
+            <label class="text-white-50 small mb-1">Identificador de Sección</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="identificador" placeholder="Ej. A, B, Única">
+          </div>
+          
+          <div class="col-md-5">
+            <label class="text-white-50 small mb-1">Cupo Máximo (Alumnos)</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="cupo" min="1">
+          </div>
+          
+          <div class="col-md-2 text-end">
+            <button type="button" class="btn btn-outline-danger w-100" (click)="removerSeccion(i)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4 tracking-wide" [disabled]="gradoForm.invalid">
+        GUARDAR GRADO Y SECCIONES
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- TABLA DE GRADOS   -->
+<div class="glass-panel p-4">
+  <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-diagram-3 me-2"></i>Catálogo de Grados</h5>
+  <div class="table-responsive">
+    <table class="table glass-table text-white">
+      <thead>
+        <tr>
+          <th>Grado</th>
+          <th>Nivel Educativo</th>
+          <th>Especialidad / Carrera</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listaGrados.length === 0">
+          <td colspan="5" class="text-center text-white-50 py-3">No hay grados registrados.</td>
+        </tr>
+
+        <tr *ngFor="let grado of listaGrados">
+          <td><span class="badge text-white border border-secondary">{{ grado.nombre }}</span></td>
+          
+          <td>{{ getNombreNivel(grado.idNivel) }}</td>
+          <td>
+            <span *ngIf="grado.idCarrera">{{ getNombreCarrera(grado.idCarrera) }}</span>
+            <span *ngIf="!grado.idCarrera" class="text-white-50 small">No aplica</span>
+          </td>
+          
+          <td>
+            <!-- Botón Gestionar Secciones  -->
+            <button class="btn btn-sm glass-btn-action text-warning me-2" title="Gestionar Secciones"
+                    data-bs-toggle="modal" data-bs-target="#modalGestionarSecciones" (click)="abrirModalSecciones(grado)">
+              <i class="bi bi-collection"></i>
+            </button>
+
+            <!-- Botón Editar Grado  -->
+            <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Grado"
+                    data-bs-toggle="modal" data-bs-target="#modalEditarGrado" (click)="abrirModalEdicion(grado)">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">
+        <i class="bi bi-chevron-left"></i> Anterior
+      </button>
+      <span class="text-white-50 small">Página {{ paginaActual }}</span>
+      <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(1)" [disabled]="listaGrados.length < limitePorPagina">
+        Siguiente <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 1: EDICIÓN DE GRADO   -->
+<div class="modal fade" id="modalEditarGrado" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-pencil-square me-2"></i>Editar Datos del Grado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <form [formGroup]="gradoEditForm" class="row g-3">
+          
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Nombre del Grado</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="nombre">
+          </div>
+          
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Nivel Educativo</label>
+            <select class="form-select glass-input text-white" formControlName="idNivel">
+              <option value="" class="text-dark" disabled>Seleccione un nivel...</option>
+              <option class="text-dark" *ngFor="let nivel of listaNiveles" [value]="nivel.idNivel">
+                {{ nivel.nivel }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Carrera (Solo Diversificado)</label>
+            <select class="form-select glass-input text-white" formControlName="idCarrera">
+              <option value="" class="text-dark">Ninguna / No aplica</option>
+              <option class="text-dark" *ngFor="let carrera of listaCarreras" [value]="carrera.idCarrera">
+                {{ carrera.nombre }}
+              </option>
+            </select>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="actualizarGrado()" [disabled]="gradoEditForm.invalid">
+          Actualizar Grado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: GESTIONAR SECCIONES   -->
+<div class="modal fade" id="modalGestionarSecciones" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light">
+          <i class="bi bi-collection me-2"></i>Secciones de <strong *ngIf="gradoSeleccionado">{{ gradoSeleccionado.nombre }}</strong>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        
+        <!-- Agregar nueva sección -->
+        <form [formGroup]="nuevaSeccionForm" (ngSubmit)="guardarNuevaSeccion()" class="row g-2 align-items-end mb-4 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
+          <div class="col-md-5">
+            <label class="text-white-50 small mb-1">Nueva Sección (ID)</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="identificador" placeholder="Ej. C">
+          </div>
+          <div class="col-md-4">
+            <label class="text-white-50 small mb-1">Cupo Máximo</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="cupo" min="1">
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-info w-100 rounded-pill" [disabled]="nuevaSeccionForm.invalid">
+              <i class="bi bi-plus-lg"></i> Agregar
+            </button>
+          </div>
+        </form>
+
+        <!-- Secciones Actuales -->
+        <div class="table-responsive">
+          <table class="table glass-table text-white mb-0">
+            <thead>
+              <tr>
+                <th>Sección</th>
+                <th>Cupo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="listaSeccionesGrado.length === 0">
+                <td colspan="4" class="text-center text-white-50 py-3">Este grado no tiene secciones asignadas.</td>
+              </tr>
+              <tr *ngFor="let sec of listaSeccionesGrado">
+                <td><span class="badge bg-secondary">{{ sec.identificador }}</span></td>
+                <td>{{ sec.cupo }} alumnos</td>
+                <td>
+                  <button class="btn btn-sm glass-btn-action text-danger" title="Eliminar Sección" (click)="eliminarSeccion(sec.idSeccion)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
+  </div>
+</div>

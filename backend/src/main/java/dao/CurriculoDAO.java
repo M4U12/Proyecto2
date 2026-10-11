@@ -1,6 +1,7 @@
 package dao;
 
 import dbconection.DBConnectionSingleton;
+import dto.MallaCurricularDTO;
 import excepciones.BDException;
 import modelos.Curso;
 import java.sql.Connection;
@@ -97,5 +98,54 @@ public class CurriculoDAO {
         }
 
         return listaCursos;
+    }
+    
+    public List<MallaCurricularDTO> obtenerMallaCompletaPorCiclo(int idCiclo) throws BDException {
+        List<MallaCurricularDTO> mallaCompleta = new ArrayList<>();
+
+        String query = "SELECT g.id_grado, g.nombre AS grado_nombre, " +
+                       "c.id_curso, c.codigo, c.nombre AS curso_nombre, c.estado " +
+                       "FROM curriculo cur " +
+                       "INNER JOIN grado g ON cur.id_grado = g.id_grado " +
+                       "INNER JOIN curso c ON cur.id_curso = c.id_curso " +
+                       "WHERE cur.id_ciclo = ? " +
+                       "ORDER BY g.id_nivel, g.id_grado, c.codigo";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idCiclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                
+                MallaCurricularDTO gradoActual = null;
+
+                while (rs.next()) {
+                    int idGradoFila = rs.getInt("id_grado");
+
+                    if (gradoActual == null || gradoActual.getIdGrado() != idGradoFila) {
+                        
+                        gradoActual = new MallaCurricularDTO();
+                        gradoActual.setIdGrado(idGradoFila);
+                        gradoActual.setGrado(rs.getString("grado_nombre"));
+                        gradoActual.setCursos(new ArrayList<>());
+                        
+                        mallaCompleta.add(gradoActual);
+                    }
+
+                    Curso curso = new Curso(
+                        rs.getInt("id_curso"),
+                        rs.getString("codigo"),
+                        rs.getString("curso_nombre"),
+                        rs.getBoolean("estado")
+                    );
+                    
+                    gradoActual.getCursos().add(curso);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al obtener la malla completa: " + e.getMessage(), e);
+        }
+
+        return mallaCompleta;
     }
 }

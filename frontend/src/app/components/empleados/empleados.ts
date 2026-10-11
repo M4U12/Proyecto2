@@ -15,12 +15,22 @@ export class Empleados implements OnInit {
   listaEmpleados: any[] = [];
   crearCuentaAcceso: boolean = false;
 
+  miRolActual: string = '';
+  soySuperAdmin: boolean = false;
+
+  paginaActual: number = 1;
+  limitePorPagina: number = 10;
+
   constructor(
     private fb: FormBuilder,
     private empleadoService: EmpleadoService,
     private cdr: ChangeDetectorRef
   ) {
-    // Formulario de creacion
+    // identifica quién está usando la pantalla
+    this.miRolActual = localStorage.getItem('rol') || '';
+    this.soySuperAdmin = this.miRolActual === 'SUPER_ADMIN';
+
+    // Formulario de creación
     this.empleadoForm = this.fb.group({
       dpi: ['', [Validators.required, Validators.maxLength(13)]],
       nombres: ['', Validators.required],
@@ -34,10 +44,10 @@ export class Empleados implements OnInit {
       password: ['']
     });
 
-    // Formulario de edicion
+    // Formulario de edición
     this.empleadoEditForm = this.fb.group({
       idEmpleado: [''], 
-      dpi: ['', [Validators.required, Validators.maxLength(13)]], // <-- Ahora nace habilitado
+      dpi: ['', [Validators.required, Validators.maxLength(13)]], 
       nombres: ['', Validators.required],
       apellidos: ['', Validators.required],
       puesto: ['', Validators.required],
@@ -45,29 +55,39 @@ export class Empleados implements OnInit {
       salario: ['', [Validators.required, Validators.min(0)]]
     });
 
-    // interruptor de creacion
-    this.empleadoForm.get('crearCuenta')?.valueChanges.subscribe(checked => {
-      this.crearCuentaAcceso = checked;
-      const rolCtrl = this.empleadoForm.get('rol');
-      const correoCtrl = this.empleadoForm.get('correo');
-      const passCtrl = this.empleadoForm.get('password');
-      
-      if (checked) {
-        rolCtrl?.setValidators([Validators.required]);
-        correoCtrl?.setValidators([Validators.required, Validators.email]);
-        passCtrl?.setValidators([Validators.required, Validators.minLength(5)]);
-      } else {
-        rolCtrl?.clearValidators();
-        correoCtrl?.clearValidators();
-        passCtrl?.clearValidators();
-        rolCtrl?.setValue('');
-        correoCtrl?.setValue('');
-        passCtrl?.setValue('');
-      }
-      rolCtrl?.updateValueAndValidity();
-      correoCtrl?.updateValueAndValidity();
-      passCtrl?.updateValueAndValidity();
-    });
+    // Configuración dinámica de validaciones según el rol
+    if (this.soySuperAdmin) {
+      // El Super Admin siempre crea cuentas obligatoriamente
+      this.crearCuentaAcceso = true;
+      this.empleadoForm.get('crearCuenta')?.setValue(true);
+      this.empleadoForm.get('rol')?.setValidators([Validators.required]);
+      this.empleadoForm.get('correo')?.setValidators([Validators.required, Validators.email]);
+      this.empleadoForm.get('password')?.setValidators([Validators.required, Validators.minLength(5)]);
+    } else {
+      // El Admin normal usa el switch
+      this.empleadoForm.get('crearCuenta')?.valueChanges.subscribe(checked => {
+        this.crearCuentaAcceso = checked;
+        const rolCtrl = this.empleadoForm.get('rol');
+        const correoCtrl = this.empleadoForm.get('correo');
+        const passCtrl = this.empleadoForm.get('password');
+        
+        if (checked) {
+          rolCtrl?.setValidators([Validators.required]);
+          correoCtrl?.setValidators([Validators.required, Validators.email]);
+          passCtrl?.setValidators([Validators.required, Validators.minLength(5)]);
+        } else {
+          rolCtrl?.clearValidators();
+          correoCtrl?.clearValidators();
+          passCtrl?.clearValidators();
+          rolCtrl?.setValue('');
+          correoCtrl?.setValue('');
+          passCtrl?.setValue('');
+        }
+        rolCtrl?.updateValueAndValidity();
+        correoCtrl?.updateValueAndValidity();
+        passCtrl?.updateValueAndValidity();
+      });
+    }
   }
 
   ngOnInit(): void {
@@ -75,15 +95,27 @@ export class Empleados implements OnInit {
   }
 
   cargarEmpleados() {
-    this.empleadoService.getEmpleados().subscribe({
+    this.empleadoService.getEmpleados(this.paginaActual, this.limitePorPagina).subscribe({
       next: (datos) => {
-        this.listaEmpleados = datos;
+        // Filtra usando la propiedad rolSistema
+        if (this.soySuperAdmin) {
+          this.listaEmpleados = datos.filter((e: any) => e.rolSistema === 'SUPER_ADMIN' || e.rolSistema === 'ADMINISTRADOR');
+        } else {
+          // El admin ve al resto del personal tengan cuenta o no
+          this.listaEmpleados = datos.filter((e: any) => e.rolSistema !== 'SUPER_ADMIN' && e.rolSistema !== 'ADMINISTRADOR');
+        }
         this.cdr.detectChanges(); 
       },
       error: (err) => console.error('Error al obtener empleados:', err)
     });
   }
 
+  cambiarPagina(valor: number) {
+    if (this.paginaActual + valor > 0) {
+      this.paginaActual += valor;
+      this.cargarEmpleados();
+    }
+  }
 
   guardarEmpleado() {
     if (this.empleadoForm.invalid) {
@@ -94,7 +126,7 @@ export class Empleados implements OnInit {
     const formulario = { ...this.empleadoForm.value };
     delete formulario.crearCuenta;
 
-    if (!this.crearCuentaAcceso) {
+    if (!this.soySuperAdmin && !this.crearCuentaAcceso) {
       delete formulario.rol;
       delete formulario.correo;
       delete formulario.password;
@@ -102,14 +134,18 @@ export class Empleados implements OnInit {
 
     this.empleadoService.registrarPersonal(formulario).subscribe({
       next: () => {
-        alert('Personal registrado exitosamente.');
-        this.empleadoForm.reset({ crearCuenta: false });
+        alert('Registro guardado exitosamente.');
+        
+        // Reseteo 
+        this.empleadoForm.reset({ crearCuenta: this.soySuperAdmin });
+        if (!this.soySuperAdmin) this.crearCuentaAcceso = false;
+        
+        this.paginaActual = 1;
         this.cargarEmpleados();
       },
       error: (err) => alert('Error al guardar: ' + (err.error?.error || 'Intenta de nuevo.'))
     });
   }
-
 
   abrirModalEdicion(emp: any) {
     let fechaFormateada = '';
@@ -131,7 +167,6 @@ export class Empleados implements OnInit {
     });
   }
 
-
   actualizarEmpleado() {
     if (this.empleadoEditForm.invalid) return;
 
@@ -140,7 +175,7 @@ export class Empleados implements OnInit {
 
     this.empleadoService.modificarEmpleado(id, formularioEditado).subscribe({
       next: () => {
-        alert('Datos del empleado actualizados exitosamente.');
+        alert('Datos actualizados exitosamente.');
         this.cargarEmpleados();
       },
       error: (err) => alert('Error al actualizar: ' + (err.error?.error || 'Intenta de nuevo.'))
@@ -151,7 +186,7 @@ export class Empleados implements OnInit {
     const nuevoEstado = !estadoActual;
     this.empleadoService.cambiarEstado(id, nuevoEstado).subscribe({
       next: () => this.cargarEmpleados(),
-      error: (err) => alert('Hubo un error al cambiar el estado del empleado.')
+      error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo cambiar el estado.'))
     });
   }
 

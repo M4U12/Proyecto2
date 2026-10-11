@@ -82,4 +82,17 @@ public class GradoResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarGrados(@QueryParam("pagina") @DefaultValue("1") int pagina,
+            @QueryParam("limite") @DefaultValue("5") int limite) {
+        try {
+            List<Grado> grados = gradoDAO.listarPaginado(pagina, limite);
+            return Response.ok(grados).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

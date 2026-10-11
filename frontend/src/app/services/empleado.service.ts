@@ -15,8 +15,8 @@ export class EmpleadoService {
   }
 
 
-  getEmpleados(): Observable<any> {
-    return this.http.get(this.apiUrl);
+  getEmpleados(pagina: number = 1, limite: number = 10): Observable<any> {
+    return this.http.get(`${this.apiUrl}?pagina=${pagina}&limite=${limite}`);
   }
 
 
@@ -26,5 +26,9 @@ export class EmpleadoService {
 
   modificarEmpleado(id: number, datos: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, datos);
+  }
+  
+  obtenerPorId(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
   }
 }

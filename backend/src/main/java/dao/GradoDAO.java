@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class GradoDAO {
+
     public boolean registrarGradoConSecciones(Grado grado, List<Seccion> secciones) throws BDException {
         String queryGrado = "INSERT INTO grado (nombre, id_nivel, id_carrera) VALUES (?, ?, ?)";
         String querySeccion = "INSERT INTO seccion (identificador, cupo, id_grado) VALUES (?, ?, ?)";
@@ -76,7 +77,6 @@ public class GradoDAO {
         }
     }
 
-
     public boolean modificarGrado(Grado grado) throws BDException {
         String queryUpdateGrado = "UPDATE grado SET nombre = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
 
@@ -127,10 +127,10 @@ public class GradoDAO {
                         try (ResultSet rsSeccion = psSeccion.executeQuery()) {
                             while (rsSeccion.next()) {
                                 Seccion seccion = new Seccion(
-                                rsSeccion.getInt("id_seccion"),
-                                rsSeccion.getString("identificador"),
-                                rsSeccion.getInt("cupo"),
-                                rsSeccion.getInt("id_grado"));
+                                        rsSeccion.getInt("id_seccion"),
+                                        rsSeccion.getString("identificador"),
+                                        rsSeccion.getInt("cupo"),
+                                        rsSeccion.getInt("id_grado"));
 
                                 listaSecciones.add(seccion);
                             }
@@ -149,7 +149,7 @@ public class GradoDAO {
         return listaGrados;
     }
 
-    // 4. Buscar grado por ID
+    // Buscar grado por ID
     public Optional<Grado> buscarPorId(int idGrado) throws BDException {
         String query = "SELECT * FROM grado WHERE id_grado = ?";
         Grado grado = null;
@@ -174,5 +174,56 @@ public class GradoDAO {
             throw new BDException("Error al buscar el grado por ID: " + e.getMessage(), e);
         }
         return Optional.ofNullable(grado);
+    }
+
+    public List<Grado> listarPaginado(int pagina, int tamanoPagina) throws BDException {
+        List<Grado> listaGrados = new ArrayList<>();
+        String queryGrado = "SELECT * FROM grado LIMIT ? OFFSET ?";
+        String querySeccion = "SELECT * FROM seccion WHERE id_grado = ? ORDER BY identificador ASC";
+
+        int offset = (pagina - 1) * tamanoPagina;
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
+             
+            psGrado.setInt(1, tamanoPagina);
+            psGrado.setInt(2, offset);
+
+            try (ResultSet rsGrado = psGrado.executeQuery()) {
+                while (rsGrado.next()) {
+                    Grado grado = new Grado();
+                    grado.setIdGrado(rsGrado.getInt("id_grado"));
+                    grado.setNombre(rsGrado.getString("nombre"));
+                    grado.setIdNivel(rsGrado.getInt("id_nivel"));
+
+                    int idCarrera = rsGrado.getInt("id_carrera");
+                    if (!rsGrado.wasNull()) {
+                        grado.setIdCarrera(idCarrera);
+                    }
+
+                    List<Seccion> secciones = new ArrayList<>();
+                    try (PreparedStatement psSeccion = connection.prepareStatement(querySeccion)) {
+                        psSeccion.setInt(1, grado.getIdGrado());
+                        try (ResultSet rsSeccion = psSeccion.executeQuery()) {
+                            while (rsSeccion.next()) {
+                                secciones.add(new Seccion(
+                                    rsSeccion.getInt("id_seccion"),
+                                    rsSeccion.getString("identificador"),
+                                    rsSeccion.getInt("cupo"),
+                                    rsSeccion.getInt("id_grado")
+                                ));
+                            }
+                        }
+                    }
+                    
+                    grado.setSecciones(secciones);
+                    listaGrados.add(grado);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al listar los grados paginados: " + e.getMessage(), e);
+        }
+
+        return listaGrados;
     }
 }

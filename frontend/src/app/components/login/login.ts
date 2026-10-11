@@ -13,7 +13,11 @@ import { CommonModule } from '@angular/common';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  recuperarForm: FormGroup;
+  
   mensajeError: string = '';
+  modoRecuperacion: boolean = false;
+  cargando: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -24,20 +28,53 @@ export class LoginComponent {
       correo: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+
+    this.recuperarForm = this.fb.group({
+      correo: ['', [Validators.required, Validators.email]]
+    });
+  }
+
+  cambiarModo() {
+    this.modoRecuperacion = !this.modoRecuperacion;
+    this.mensajeError = '';
+    this.loginForm.reset();
+    this.recuperarForm.reset();
   }
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.cargando = true;
+      this.mensajeError = '';
       const { correo, password } = this.loginForm.value;
       
       this.authService.login(correo, password).subscribe({
         next: (respuesta) => {
-          this.authService.guardarSesion(respuesta);
+          this.cargando = false;
           alert('¡Bienvenido, ' + respuesta.rol + '!');
           this.router.navigate(['/dashboard']); 
         },
         error: (err) => {
-          this.mensajeError = err.error.error || 'Credenciales incorrectas';
+          this.cargando = false;
+          this.mensajeError = err.error?.error || 'Credenciales incorrectas';
+        }
+      });
+    }
+  }
+
+  enviarRecuperacion() {
+    if (this.recuperarForm.valid) {
+      this.cargando = true;
+      this.mensajeError = '';
+      
+      this.authService.recuperarPassword(this.recuperarForm.value.correo).subscribe({
+        next: (res) => {
+          this.cargando = false;
+          alert(res.mensaje || 'Revisa tu bandeja de entrada.');
+          this.cambiarModo(); 
+        },
+        error: (err) => {
+          this.cargando = false;
+          this.mensajeError = err.error?.error || 'No se pudo enviar el correo.';
         }
       });
     }

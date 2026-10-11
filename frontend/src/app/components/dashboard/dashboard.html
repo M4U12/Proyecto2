@@ -1,9 +1,7 @@
-<!-- Fondo global oscuro -->
 <div class="d-flex vh-100 custom-global-bg">
   
-  <!-- Sidebar de Cristal -->
+  <!-- Sidebar -->
   <nav class="glass-sidebar d-flex flex-column p-4">
-    <!-- Logotipo Institucional -->
     <div class="text-center mb-5 mt-2">
       <i class="bi bi-bank2 fs-1 text-white-50 mb-2"></i>
       <h5 class="text-white fw-light tracking-wide mt-2">Coden School</h5>
@@ -13,32 +11,58 @@
     <!-- Menú de Opciones -->
     <ul class="nav flex-column mb-auto gap-2">
       <li class="nav-item">
-        <a href="#" class="nav-link glass-nav-link active">
+        <a routerLink="/dashboard" class="nav-link glass-nav-link">
           <i class="bi bi-grid-1x2"></i> Panel Principal
         </a>
       </li>
+      <li class="nav-item">
+        <a routerLink="/dashboard/perfil" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-person-gear me-2"></i> Mi Perfil
+        </a>
+      </li>
       <li class="nav-item" *ngIf="rolUsuario === 'SUPER_ADMIN'">
-        <a routerLink="/dashboard/ciclos" class="nav-link glass-nav-link">
-        <i class="bi bi-calendar3"></i> Ciclos Lectivos
-      </a>
-      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
-        <a routerLink="/dashboard/empleados" class="nav-link glass-nav-link">
-        <i class="bi bi-person-badge"></i> Gestionar Empleados
-      </a>
+        <a routerLink="/dashboard/ciclos" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-calendar3 me-2"></i> Ciclos Lectivos
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'SUPER_ADMIN'">
+        <a routerLink="/dashboard/administradores" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-shield-lock me-2"></i> Gestionar Administradores
+        </a>
       </li>
       <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
-        <a routerLink="/dashboard/carreras" class="nav-link glass-nav-link">
-        <i class="bi bi-mortarboard"></i> Carreras
-      </a>
+        <a routerLink="/dashboard/empleados" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-person-badge me-2"></i> Gestionar Empleados
+        </a>
       </li>
       <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
-        <a routerLink="/dashboard/niveles" class="nav-link glass-nav-link">
-        <i class="bi bi-mortarboard"></i> Niveles Educativos
-      </a>
+        <a routerLink="/dashboard/carreras" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-journal-bookmark me-2"></i> Carreras
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/niveles" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-layers me-2"></i> Niveles Educativos
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/grados" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-diagram-3 me-2"></i> Grados
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/secciones" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-collection me-2"></i> Secciones
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/curriculos" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-book me-2"></i> Curriculos
+        </a>
       </li>
       <li class="nav-item">
-        <a href="#" class="nav-link glass-nav-link">
-          <i class="bi bi-people"></i> Estudiantes
+        <a routerLink="/dashboard/estudiantes" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-people me-2"></i> Estudiantes
         </a>
       </li>
     </ul>
@@ -52,8 +76,6 @@
 
   <!-- Contenido Principal -->
   <main class="flex-grow-1 p-4 p-md-5 overflow-auto">
-    <!-- Aquí Angular inyectará Ciclos, Carreras, etc. -->
     <router-outlet></router-outlet>
   </main>
-
 </div>
