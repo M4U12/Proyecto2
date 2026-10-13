@@ -23,10 +23,10 @@ public class JwtFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        System.out.println("---> EL FILTRO JWT SE ESTÁ EJECUTANDO PARA: " + requestContext.getUriInfo().getPath());
         if (requestContext.getMethod().equalsIgnoreCase("OPTIONS")) {
             return;
         }
+        
         //  encabezado authorization de la petición
         String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
@@ -36,12 +36,13 @@ public class JwtFilter implements ContainerRequestFilter {
                     .entity("{\"error\":\"Falta el token de autorización o es inválido.\"}").build());
             return;
         }
+        
 
         //  Extraer el token quitando "Bearer "
         String token = authorizationHeader.substring(7);
 
         try {
-            // Validar el token matemáticamente
+            // Validar el token 
             Key key = Keys.hmacShaKeyFor(CLAVE_SECRETA.getBytes());
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)

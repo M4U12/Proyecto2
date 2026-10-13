@@ -13,8 +13,8 @@ import java.util.List;
 import seguridad.Secured;
 
 @Path("/niveles")
-@Secured
 public class NivelEducativoResource {
+
     private NivelEducativoDAO nivelDAO = new NivelEducativoDAO();
 
     // Consultar niveles educativos
@@ -32,6 +32,7 @@ public class NivelEducativoResource {
 
     // Modificar descripción del nivel
     @PUT
+    @Secured
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -57,6 +58,7 @@ public class NivelEducativoResource {
 
     // Activar/Desactivar Nivel
     @PUT
+    @Secured
     @Path("/{id}/estado")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

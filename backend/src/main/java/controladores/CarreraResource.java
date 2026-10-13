@@ -13,13 +13,13 @@ import java.util.List;
 import seguridad.Secured;
 
 @Path("/carreras")
-@Secured
 public class CarreraResource {
 
     private CarreraDAO carreraDAO = new CarreraDAO();
 
     // Registrar carrera
     @POST
+    @Secured
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registrarCarrera(CarreraRequestDTO request) {
@@ -57,6 +57,7 @@ public class CarreraResource {
 
     // Modificar carrera
     @PUT
+    @Secured
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,6 +94,7 @@ public class CarreraResource {
 
     // Activar/desactivar carrera
     @PUT
+    @Secured
     @Path("/{id}/estado")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -118,7 +120,6 @@ public class CarreraResource {
 
     // Listar carreras paginadas
     @GET
-    @Secured
     @Produces(MediaType.APPLICATION_JSON)
     public Response listarCarreras(@QueryParam("pagina") @DefaultValue("1") int pagina,
             @QueryParam("limite") @DefaultValue("10") int limite) {
