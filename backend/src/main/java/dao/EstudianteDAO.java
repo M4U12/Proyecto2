@@ -76,9 +76,8 @@ public class EstudianteDAO {
         }
     }
 
-    // CU25: Consultar Expediente Completo (Corregido con nombres y apellidos separados)
+
     public Optional<ExpedienteCompletoDTO> consultarExpediente(String codigoPersonal) throws BDException {
-        // Corrección 1: Quitamos el CONCAT y pedimos e.nombres y e.apellidos por separado
         String query = "SELECT e.codigo_personal, e.nombres, e.apellidos, "
                 + "e.fecha_nacimiento, e.informacion_medica, e.contacto_encargado, e.estado, "
                 + "g.nombre AS grado, s.identificador AS seccion, c.anio AS ciclo "
