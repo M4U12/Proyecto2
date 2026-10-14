@@ -70,4 +70,44 @@ public class InscripcionDAO {
             throw new BDException("Error al reasignar de sección al estudiante: " + e.getMessage(), e);
         }
     }
+    
+    public int contarInscritosPorCarrera(int idCarrera) throws BDException {
+        String query = "SELECT COUNT(*) AS total_inscritos "
+                + "FROM inscripcion i "
+                + "INNER JOIN grado g ON i.id_grado = g.id_grado "
+                + "WHERE g.id_carrera = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idCarrera);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_inscritos");
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al contar las inscripciones de la carrera: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+    
+    public int contarInscritosPorSeccion(int idSeccion) throws BDException{
+        String query = "SELECT COUNT(*) AS total_inscritos FROM inscripcion WHERE id_seccion = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idSeccion);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_inscritos");
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al contar las inscripciones de la sección: " + e.getMessage(), e);
+        }
+        return 0;
+    }
 }

@@ -5,7 +5,7 @@ import dto.CarreraRequestDTO;
 import dto.EstadoDTO;
 import excepciones.BDException;
 import modelos.Carrera;
-
+import dao.InscripcionDAO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -16,6 +16,7 @@ import seguridad.Secured;
 public class CarreraResource {
 
     private CarreraDAO carreraDAO = new CarreraDAO();
+    private InscripcionDAO inscripcionDAO = new InscripcionDAO();
 
     // Registrar carrera
     @POST
@@ -100,8 +101,15 @@ public class CarreraResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response cambiarEstadoCarrera(@PathParam("id") int idCarrera, EstadoDTO request) {
         try {
-            // por el momento no se comprueba que no tenga inscripciones en el ciclo escolar actual
-            // es parte de la iteracion 2, se validara aquí antes de proceder a desactivarla (request.isEstado() == false)
+            if (!request.isEstado()) {
+                int alumnosInscritos = inscripcionDAO.contarInscritosPorCarrera(idCarrera);
+
+                if (alumnosInscritos > 0) {
+                    return Response.status(Response.Status.CONFLICT)
+                            .entity("{\"error\":\"No se puede desactivar la carrera. Hay " + alumnosInscritos + " estudiantes inscritos actualmente.\"}")
+                            .build();
+                }
+            }
 
             boolean cambiado = carreraDAO.cambiarEstado(idCarrera, request.isEstado());
 

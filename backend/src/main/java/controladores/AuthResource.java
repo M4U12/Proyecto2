@@ -50,6 +50,7 @@ public class AuthResource {
                         .claim("idUsuario", usuario.getIdUsuario())
                         .claim("rol", usuario.getRol().name())
                         .claim("idEmpleado", usuario.getIdEmpleado())
+                        .claim("id_estudiante", usuario.getIdEstudiante())
                         .setIssuedAt(new Date()) // fecha emision
                         .setExpiration(new Date(System.currentTimeMillis() + TIEMPO_EXPIRACION)) // fecha de caducidad
                         .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
@@ -58,7 +59,7 @@ public class AuthResource {
                 // se envia a angular
                 String jsonResponse = String.format(
                         "{\"token\":\"%s\", \"rol\":\"%s\", \"correo\":\"%s\"}",
-                        token, usuario.getRol().name(), usuario.getCorreo()
+                        token, usuario.getRol().name(), usuario.getCorreo(), usuario.getIdEmpleado(), usuario.getIdEstudiante()
                 );
 
                 return Response.ok(jsonResponse).build();
