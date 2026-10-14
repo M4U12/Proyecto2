@@ -1,6 +1,7 @@
 package dto;
 
 import enums.EstadoEstudiante;
+import java.time.LocalDate;
 
 public class ExpedienteCompletoDTO {
 
@@ -10,11 +11,11 @@ public class ExpedienteCompletoDTO {
     private int edad; 
     private String informacionMedica;
     private String contactoEncargado;
-
     private String nombreGradoActual;
     private String identificadorSeccion;
     private int anioCicloActivo;
-
+    private LocalDate fechaNacimiento;
+    private String nombreEncargado;
     private EstadoEstudiante estadoAlumno; 
 
     public ExpedienteCompletoDTO() {
@@ -100,5 +101,22 @@ public class ExpedienteCompletoDTO {
         this.estadoAlumno = estadoAlumno;
     }
 
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public String getNombreEncargado() {
+        return nombreEncargado;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public void setNombreEncargado(String nombreEncargado) {
+        this.nombreEncargado = nombreEncargado;
+    }
+
+    
     
 }

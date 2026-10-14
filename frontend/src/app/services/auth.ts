@@ -19,6 +19,13 @@ export class AuthService {
         localStorage.setItem('rol', respuesta.rol);
         localStorage.setItem('correo', respuesta.correo);
         
+        if (respuesta.idEmpleado) {
+            localStorage.setItem('idEmpleado', respuesta.idEmpleado.toString());
+        }
+        if (respuesta.idEstudiante) {
+            localStorage.setItem('idEstudiante', respuesta.idEstudiante.toString());
+        }
+        
         this.guardarSesion(respuesta);
       })
     );
@@ -65,7 +72,7 @@ export class AuthService {
     return payload ? payload.idEmpleado : null;
   }
 
-  // Para uso futuro
+
   obtenerIdEstudiante(): number | null {
     const payload = this.decodificarToken();
     return payload ? payload.idEstudiante : null;

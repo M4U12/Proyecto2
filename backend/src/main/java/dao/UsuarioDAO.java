@@ -300,4 +300,34 @@ public class UsuarioDAO {
 
         return Optional.ofNullable(pass);
     }
+    
+    public void cambiarEstadoPorEmpleado(int idEmpleado, boolean nuevoEstado) throws BDException {
+        String query = "UPDATE usuario SET estado = ? WHERE id_empleado = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setBoolean(1, nuevoEstado);
+            ps.setInt(2, idEmpleado);
+            ps.executeUpdate();
+            
+        } catch (SQLException e) {
+            throw new BDException("Error al cambiar estado de usuario asociado al empleado: " + e.getMessage(), e);
+        }
+    }
+    
+    public void cambiarEstadoPorEstudiante(int idEstudiante, boolean nuevoEstado) throws BDException {
+        String query = "UPDATE usuario SET estado = ? WHERE id_estudiante = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+            
+            ps.setBoolean(1, nuevoEstado);
+            ps.setInt(2, idEstudiante);
+            ps.executeUpdate();
+            
+        } catch (SQLException e) {
+            throw new BDException("Error al cambiar estado de usuario asociado al estudiante: " + e.getMessage(), e);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package controladores;
 
 import dao.EmpleadoDAO;
+import dao.UsuarioDAO;
 import dto.EstadoDTO;
 import dto.RegistroPersonalDTO;
 import enums.Rol;
@@ -18,6 +19,7 @@ import seguridad.Secured;
 public class PersonalResource {
 
     private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
+    private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     // Registrar Empleado y Usuario
     @POST
@@ -86,6 +88,14 @@ public class PersonalResource {
             boolean cambiado = empleadoDAO.cambiarEstado(idEmpleado, request.isEstado());
 
             if (cambiado) {
+                try {
+                    // Nota: Si aún no tienes este método en UsuarioDAO, tendrás que crearlo
+                    // (Te lo adjunto más abajo).
+                    usuarioDAO.cambiarEstadoPorEmpleado(idEmpleado, request.isEstado());
+                } catch (Exception e) {
+                    System.err.println("Aviso: El empleado no tenía usuario o falló la actualización de cuenta: " + e.getMessage());
+                }
+
                 String accion = request.isEstado() ? "activado" : "desactivado";
                 return Response.ok("{\"mensaje\":\"Empleado " + accion + " en nómina exitosamente.\"}").build();
             } else {

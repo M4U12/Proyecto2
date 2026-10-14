@@ -26,6 +26,6 @@ export const roleGuard: CanActivateFn = (route, state) => {
     }
   }
 
-  // si la ruta no exige rol específico, pero esta logueado, lo dejam pasar
+  // si la ruta no exige rol específico, pero esta logueado, lo deja pasar
   return true; 
 };

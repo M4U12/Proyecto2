@@ -5,7 +5,7 @@ import dto.NuevaSeccionDTO;
 import dto.SeccionDTO;
 import excepciones.BDException;
 import modelos.Seccion;
-
+import dao.InscripcionDAO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -18,6 +18,7 @@ import seguridad.Secured;
 public class SeccionResource {
 
     private SeccionDAO seccionDAO = new SeccionDAO();
+    private InscripcionDAO inscripcionDAO = new InscripcionDAO();
 
     // Agregar nueva sección a un grado
     @POST
@@ -59,8 +60,13 @@ public class SeccionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response modificarSeccion(@PathParam("id") int idSeccion, SeccionDTO request) {
         try {
-            // pendiente para la iteracion 2: comprueba que el nuevo cupo no sea menor a los alumnos ya inscritos en la sección."
-            // con un COUNT de alumnos inscritos, si request.getCupo() < inscritos, se lanzara un BAD_REQUEST.
+            int inscritosActuales = inscripcionDAO.contarInscritosPorSeccion(idSeccion);
+
+            if (request.getCupo() < inscritosActuales) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"error\":\"El nuevo cupo (" + request.getCupo() + ") no puede ser menor a la cantidad de alumnos ya inscritos (" + inscritosActuales + ").\"}")
+                        .build();
+            }
 
             Seccion seccion = new Seccion();
             seccion.setIdSeccion(idSeccion);
@@ -81,7 +87,6 @@ public class SeccionResource {
         }
     }
 
-
     @GET
     @Path("/grado/{idGrado}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,7 +99,7 @@ public class SeccionResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
-    
+
     // Eliminar sección
     @DELETE
     @Path("/{id}")

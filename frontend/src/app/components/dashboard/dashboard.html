@@ -60,7 +60,7 @@
           <i class="bi bi-book me-2"></i> Curriculos
         </a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" *ngIf="rolUsuario === 'SECRETARIA'">
         <a routerLink="/dashboard/estudiantes" routerLinkActive="active" class="nav-link glass-nav-link">
           <i class="bi bi-people me-2"></i> Estudiantes
         </a>

@@ -9,12 +9,14 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import seguridad.Secured; 
 import java.util.Optional;
+import dao.UsuarioDAO;
 
 @Path("/estudiantes")
 @Secured 
 public class EstudianteResource {
 
     private EstudianteDAO estudianteDAO = new EstudianteDAO();
+    private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -82,6 +84,24 @@ public class EstudianteResource {
             boolean cambiado = estudianteDAO.cambiarEstadoEstudiante(codigoPersonal, nuevoEstado);
 
             if (cambiado) {
+                try {
+                    // Primero necesitamos buscar el id_estudiante usando el código
+                    Optional<ExpedienteCompletoDTO> expOpt = estudianteDAO.consultarExpediente(codigoPersonal);
+                    if (expOpt.isPresent()) {
+                        // OJO: Tendrás que agregar getIdEstudiante() a tu ExpedienteCompletoDTO
+                        // O hacer una consulta directa en EstudianteDAO que retorne el ID numérico.
+                        // Asumiendo que agregas el ID al DTO:
+                        // int idEstudiante = expOpt.get().getIdEstudiante();
+                        
+                        // Lógica de acceso: Si está INACTIVO, se bloquea la cuenta. 
+                        // Si está ACTIVO o GRADUADO, la cuenta funciona.
+                        // boolean estadoCuenta = nuevoEstado != EstadoEstudiante.INACTIVO;
+                        // usuarioDAO.cambiarEstadoPorEstudiante(idEstudiante, estadoCuenta);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Aviso: Falló la sincronización de cuenta del estudiante: " + e.getMessage());
+                }
+
                 return Response.ok("{\"mensaje\":\"Estado del estudiante actualizado exitosamente a " + nuevoEstado.name() + ".\"}").build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -109,6 +129,23 @@ public class EstudianteResource {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("{\"error\":\"Estudiante no encontrado.\"}").build();
             }
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/buscar")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response buscarPorNombre(@QueryParam("nombre") String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El parámetro de búsqueda no puede estar vacío.\"}").build();
+        }
+        
+        try {
+            return Response.ok(estudianteDAO.buscarCodigosPorNombre(nombre)).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();

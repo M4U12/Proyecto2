@@ -158,17 +158,53 @@ public class EmpleadoDAO {
     }
 
     public boolean cambiarEstado(int idEmpleado, boolean estado) throws BDException {
-        String query = "UPDATE empleado SET estado = ? WHERE id_empleado = ?";
+        String updateEmpleado = "UPDATE empleado SET estado = ? WHERE id_empleado = ?";
+        String updateUsuario = "UPDATE usuario SET estado = ? WHERE id_empleado = ?";
 
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        Connection connection = null;
 
-            ps.setBoolean(1, estado);
-            ps.setInt(2, idEmpleado);
+        try {
+            connection = DBConnectionSingleton.getInstance().getConnection();
+            connection.setAutoCommit(false); 
 
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement psEmp = connection.prepareStatement(updateEmpleado)) {
+                psEmp.setBoolean(1, estado);
+                psEmp.setInt(2, idEmpleado);
+                int filasAfectadas = psEmp.executeUpdate();
+
+                if (filasAfectadas == 0) {
+                    connection.rollback();
+                    return false; 
+                }
+            }
+
+            try (PreparedStatement psUsu = connection.prepareStatement(updateUsuario)) {
+                psUsu.setBoolean(1, estado);
+                psUsu.setInt(2, idEmpleado);
+                psUsu.executeUpdate(); 
+            }
+
+            connection.commit(); 
+            return true;
 
         } catch (SQLException e) {
-            throw new BDException("Error al cambiar el estado del empleado: " + e.getMessage(), e);
+            if (connection != null) {
+                try {
+                    connection.rollback(); 
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw new BDException("Error en transacción al cambiar el estado del empleado: " + e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -211,16 +247,15 @@ public class EmpleadoDAO {
 
         return listaEmpleados;
     }
-    
+
     public Optional<Empleado> buscarPorId(int idEmpleado) throws BDException {
         String query = "SELECT * FROM empleado WHERE id_empleado = ?";
         Empleado empleado = null;
 
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
-             PreparedStatement ps = connection.prepareStatement(query)) {
-            
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
             ps.setInt(1, idEmpleado);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     empleado = new Empleado();

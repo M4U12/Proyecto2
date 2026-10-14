@@ -13,7 +13,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import modelos.Estudiante;
 
 public class EstudianteDAO {
 
@@ -62,24 +65,62 @@ public class EstudianteDAO {
     }
 
     public boolean cambiarEstadoEstudiante(String codigoPersonal, EstadoEstudiante nuevoEstado) throws BDException {
-        String query = "UPDATE estudiante SET estado = ? WHERE codigo_personal = ?";
+        String updateEstudiante = "UPDATE estudiante SET estado = ? WHERE codigo_personal = ?";
+        String updateUsuario = "UPDATE usuario SET estado = ? WHERE id_estudiante = (SELECT id_estudiante FROM estudiante WHERE codigo_personal = ?)";
 
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        Connection connection = null;
 
-            ps.setString(1, nuevoEstado.name());
-            ps.setString(2, codigoPersonal);
+        try {
+            connection = DBConnectionSingleton.getInstance().getConnection();
+            connection.setAutoCommit(false);
 
-            return ps.executeUpdate() > 0;
+            // actualizar expediente
+            try (PreparedStatement psEst = connection.prepareStatement(updateEstudiante)) {
+                psEst.setString(1, nuevoEstado.name());
+                psEst.setString(2, codigoPersonal);
+
+                if (psEst.executeUpdate() == 0) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            //actualizar cuenta de usuario
+            try (PreparedStatement psUsu = connection.prepareStatement(updateUsuario)) {
+                // Si el alumno pasa a INACTIVO, su acceso es false. Si es ACTIVO o GRADUADO, su acceso es true.
+                boolean estadoCuenta = (nuevoEstado != EstadoEstudiante.INACTIVO);
+                psUsu.setBoolean(1, estadoCuenta);
+                psUsu.setString(2, codigoPersonal);
+                psUsu.executeUpdate();
+            }
+
+            connection.commit();
+            return true;
 
         } catch (SQLException e) {
-            throw new BDException("Error al cambiar el estado del estudiante: " + e.getMessage(), e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw new BDException("Error en transacción al cambiar el estado del estudiante: " + e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-
     public Optional<ExpedienteCompletoDTO> consultarExpediente(String codigoPersonal) throws BDException {
         String query = "SELECT e.codigo_personal, e.nombres, e.apellidos, "
-                + "e.fecha_nacimiento, e.informacion_medica, e.contacto_encargado, e.estado, "
+                + "e.fecha_nacimiento, e.informacion_medica, e.nombre_encargado, e.contacto_encargado, e.estado, "
                 + "g.nombre AS grado, s.identificador AS seccion, c.anio AS ciclo "
                 + "FROM estudiante e "
                 + "LEFT JOIN inscripcion i ON e.id_estudiante = i.id_estudiante "
@@ -101,8 +142,8 @@ public class EstudianteDAO {
                     expediente.setCodigoPersonal(rs.getString("codigo_personal"));
                     expediente.setNombres(rs.getString("nombres"));
                     expediente.setApellidos(rs.getString("apellidos"));
-
                     expediente.setInformacionMedica(rs.getString("informacion_medica"));
+                    expediente.setNombreEncargado(rs.getString("nombre_encargado"));
                     expediente.setContactoEncargado(rs.getString("contacto_encargado"));
 
                     String estadoDb = rs.getString("estado");
@@ -117,10 +158,11 @@ public class EstudianteDAO {
                     if (!rs.wasNull()) {
                         expediente.setAnioCicloActivo(anioCiclo);
                     }
+                    LocalDate fechaNac = rs.getDate("fecha_nacimiento").toLocalDate();
+                    expediente.setFechaNacimiento(fechaNac);
 
                     // calculo de la edad 
-                    LocalDate fechaNacimiento = rs.getDate("fecha_nacimiento").toLocalDate();
-                    int edadCalculada = Period.between(fechaNacimiento, LocalDate.now()).getYears();
+                    int edadCalculada = Period.between(fechaNac, LocalDate.now()).getYears();
                     expediente.setEdad(edadCalculada);
                 }
             }
@@ -129,5 +171,35 @@ public class EstudianteDAO {
         }
 
         return Optional.ofNullable(expediente);
+    }
+
+    // solo devuelve el código y nombre
+    public List<Estudiante> buscarCodigosPorNombre(String filtro) throws BDException {
+        List<Estudiante> lista = new ArrayList<>();
+
+        // busqueda flexible por nombre o apellido
+        String query = "SELECT codigo_personal, nombres, apellidos FROM estudiante "
+                + "WHERE nombres LIKE ? OR apellidos LIKE ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+
+            String comodin = "%" + filtro.trim() + "%";
+            ps.setString(1, comodin);
+            ps.setString(2, comodin);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    modelos.Estudiante e = new modelos.Estudiante();
+                    e.setCodigoPersonal(rs.getString("codigo_personal"));
+                    e.setNombres(rs.getString("nombres"));
+                    e.setApellidos(rs.getString("apellidos"));
+                    lista.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al buscar códigos por nombre: " + e.getMessage(), e);
+        }
+
+        return lista;
     }
 }
