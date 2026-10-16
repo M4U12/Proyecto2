@@ -46,7 +46,7 @@ export class Estudiantes {
     this.busquedaSinResultados = false;
     this.expedienteActual = null;
     this.modoEdicion = false;
-    this.cdr.detectChanges(); // Forzamos actualización visual al limpiar
+    this.cdr.detectChanges(); 
 
     this.estudianteService.buscarPorNombre(this.nombreBusqueda).subscribe({
       next: (datos: any[]) => {
@@ -54,7 +54,7 @@ export class Estudiantes {
         if (this.resultadosNombre.length === 0) {
           this.busquedaSinResultados = true;
         }
-        this.cdr.detectChanges(); // Repinta la tabla de resultados inmediatamente
+        this.cdr.detectChanges(); 
       },
       error: (err) => {
         alert('Error al buscar: ' + (err.error?.error || err.message));
@@ -67,7 +67,7 @@ export class Estudiantes {
     this.codigoBusqueda = codigo;
     this.resultadosNombre = []; 
     this.nombreBusqueda = '';   
-    this.cdr.detectChanges(); // Oculta la tabla al instante
+    this.cdr.detectChanges(); // oculta la tabla al instante
     this.buscarExpediente();    
   }
 
@@ -86,7 +86,7 @@ export class Estudiantes {
     this.estudianteService.obtenerExpediente(this.codigoBusqueda.trim()).subscribe({
       next: (datos) => {
         this.expedienteActual = datos;
-        this.cdr.detectChanges(); // Muestra la tarjeta del expediente al instante
+        this.cdr.detectChanges(); 
       },
       error: (err) => {
         alert('Estudiante no encontrado: ' + (err.error?.error || 'Verifica el código.'));
@@ -151,7 +151,7 @@ export class Estudiantes {
       contactoEncargado: this.expedienteActual.contactoEncargado
     });
     
-    this.cdr.detectChanges(); // Forzamos actualización visual al cambiar a modo edición
+    this.cdr.detectChanges(); 
   }
 
   cancelarEdicion() {

@@ -55,21 +55,24 @@ public class InscripcionDAO {
         return false; 
     }
 
-    public boolean reasignarSeccion(int idEstudiante, int idCiclo, int nuevaSeccion) throws BDException {
-        String query = "UPDATE inscripcion SET id_seccion = ? WHERE id_estudiante = ? AND id_ciclo = ?";
+    public boolean corregirInscripcion(int idEstudiante, int idCiclo, int idNuevoGrado, int idNuevaSeccion) throws BDException {
+        String query = "UPDATE inscripcion SET id_grado = ?, id_seccion = ? WHERE id_estudiante = ? AND id_ciclo = ?";
 
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
 
-            ps.setInt(1, nuevaSeccion);
-            ps.setInt(2, idEstudiante);
-            ps.setInt(3, idCiclo);
+            ps.setInt(1, idNuevoGrado);
+            ps.setInt(2, idNuevaSeccion);
+            ps.setInt(3, idEstudiante);
+            ps.setInt(4, idCiclo);
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            throw new BDException("Error al reasignar de sección al estudiante: " + e.getMessage(), e);
+            throw new BDException("Error al corregir la inscripción del estudiante: " + e.getMessage(), e);
         }
     }
+    
     
     public int contarInscritosPorCarrera(int idCarrera) throws BDException {
         String query = "SELECT COUNT(*) AS total_inscritos "

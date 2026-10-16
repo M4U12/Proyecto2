@@ -16,7 +16,6 @@ import dao.UsuarioDAO;
 public class EstudianteResource {
 
     private EstudianteDAO estudianteDAO = new EstudianteDAO();
-    private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -81,27 +80,9 @@ public class EstudianteResource {
     public Response cambiarEstadoEstudiante(@PathParam("codigo") String codigoPersonal, @PathParam("nuevoEstado") String estadoStr) {
         try {
             EstadoEstudiante nuevoEstado = EstadoEstudiante.valueOf(estadoStr.toUpperCase());
+            
             boolean cambiado = estudianteDAO.cambiarEstadoEstudiante(codigoPersonal, nuevoEstado);
-
             if (cambiado) {
-                try {
-                    // Primero necesitamos buscar el id_estudiante usando el código
-                    Optional<ExpedienteCompletoDTO> expOpt = estudianteDAO.consultarExpediente(codigoPersonal);
-                    if (expOpt.isPresent()) {
-                        // OJO: Tendrás que agregar getIdEstudiante() a tu ExpedienteCompletoDTO
-                        // O hacer una consulta directa en EstudianteDAO que retorne el ID numérico.
-                        // Asumiendo que agregas el ID al DTO:
-                        // int idEstudiante = expOpt.get().getIdEstudiante();
-                        
-                        // Lógica de acceso: Si está INACTIVO, se bloquea la cuenta. 
-                        // Si está ACTIVO o GRADUADO, la cuenta funciona.
-                        // boolean estadoCuenta = nuevoEstado != EstadoEstudiante.INACTIVO;
-                        // usuarioDAO.cambiarEstadoPorEstudiante(idEstudiante, estadoCuenta);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Aviso: Falló la sincronización de cuenta del estudiante: " + e.getMessage());
-                }
-
                 return Response.ok("{\"mensaje\":\"Estado del estudiante actualizado exitosamente a " + nuevoEstado.name() + ".\"}").build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND)

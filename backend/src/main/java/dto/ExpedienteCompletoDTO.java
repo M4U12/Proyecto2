@@ -5,6 +5,9 @@ import java.time.LocalDate;
 
 public class ExpedienteCompletoDTO {
 
+    private int idEstudiante;
+    private int idGradoActual;
+    private int idCicloActivo;
     private String codigoPersonal;
     private String nombres;
     private String apellidos;
@@ -117,6 +120,27 @@ public class ExpedienteCompletoDTO {
         this.nombreEncargado = nombreEncargado;
     }
 
+    public int getIdEstudiante() {
+        return idEstudiante;
+    }
+
+    public void setIdEstudiante(int idEstudiante) {
+        this.idEstudiante = idEstudiante;
+    }
     
+    public int getIdGradoActual() {
+        return idGradoActual;
+    }
+
+    public void setIdGradoActual(int idGradoActual) {
+        this.idGradoActual = idGradoActual;
+    }
     
+    public int getIdCicloActivo() {
+        return idCicloActivo;
+    }
+
+    public void setIdCicloActivo(int idCicloActivo) {
+        this.idCicloActivo = idCicloActivo;
+    }
 }

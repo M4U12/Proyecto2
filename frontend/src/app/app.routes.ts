@@ -12,6 +12,7 @@ import { Curriculos } from './components/curriculos/curriculos';
 import { Perfil } from './components/perfil/perfil';
 import { Inicio } from './components/inicio/inicio';
 import { Estudiantes } from './components/estudiantes/estudiantes';
+import { Inscripciones } from './components/inscripciones/inscripciones';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -77,6 +78,12 @@ export const routes: Routes = [
       {
         path: 'estudiantes',
         component: Estudiantes,
+        canActivate: [roleGuard],
+        data: { role: 'SECRETARIA'}
+      },
+      {
+        path: 'inscripciones',
+        component: Inscripciones,
         canActivate: [roleGuard],
         data: { role: 'SECRETARIA'}
       }

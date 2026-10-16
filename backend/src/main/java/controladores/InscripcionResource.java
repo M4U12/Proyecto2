@@ -46,31 +46,32 @@ public class InscripcionResource {
     }
 
     @PUT
-    @Path("/estudiante/{idEstudiante}/ciclo/{idCiclo}/nueva-seccion/{idNuevaSeccion}")
+    @Path("/estudiante/{idEstudiante}/ciclo/{idCiclo}/grado/{idNuevoGrado}/seccion/{idNuevaSeccion}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response reasignarSeccion(
-            @PathParam("idEstudiante") int idEstudiante,
-            @PathParam("idCiclo") int idCiclo,
+    public Response corregirInscripcion(
+            @PathParam("idEstudiante") int idEstudiante, 
+            @PathParam("idCiclo") int idCiclo, 
+            @PathParam("idNuevoGrado") int idNuevoGrado,
             @PathParam("idNuevaSeccion") int idNuevaSeccion) {
-
-        if (idEstudiante <= 0 || idCiclo <= 0 || idNuevaSeccion <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\":\"Los identificadores proporcionados no son válidos.\"}").build();
+        
+        if (idEstudiante <= 0 || idCiclo <= 0 || idNuevoGrado <= 0 || idNuevaSeccion <= 0) {
+             return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Todos los identificadores proporcionados deben ser válidos.\"}").build();
         }
 
         try {
             if (!inscripcionDAO.hayCupoDisponible(idNuevaSeccion)) {
                 return Response.status(Response.Status.CONFLICT)
-                        .entity("{\"error\":\"No hay cupo disponible en la nueva sección.\"}").build();
+                        .entity("{\"error\":\"No hay cupo disponible en la nueva sección seleccionada.\"}").build();
             }
 
-            boolean reasignado = inscripcionDAO.reasignarSeccion(idEstudiante, idCiclo, idNuevaSeccion);
+            boolean corregido = inscripcionDAO.corregirInscripcion(idEstudiante, idCiclo, idNuevoGrado, idNuevaSeccion);
 
-            if (reasignado) {
-                return Response.ok("{\"mensaje\":\"Estudiante reasignado de sección exitosamente.\"}").build();
+            if (corregido) {
+                return Response.ok("{\"mensaje\":\"Inscripción corregida exitosamente.\"}").build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"error\":\"No se encontró una inscripción vigente para reasignar.\"}").build();
+                        .entity("{\"error\":\"No se encontró una inscripción vigente en el ciclo actual para corregir.\"}").build();
             }
 
         } catch (BDException e) {

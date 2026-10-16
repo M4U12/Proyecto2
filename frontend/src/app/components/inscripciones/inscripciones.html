@@ -1,0 +1,150 @@
+<div class="row mb-4">
+  
+  <!-- PANEL IZQUIERDO: SELECCIÓN DE ESTUDIANTE -->
+  <div class="col-md-5">
+    <div class="glass-panel p-4 h-100">
+      <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-person-badge me-2"></i>Seleccionar Estudiante</h5>
+      
+      <label class="text-white-50 small mb-1">Buscar por Código Personal</label>
+      <div class="input-group mb-4">
+        <input type="text" class="form-control glass-input text-white" [(ngModel)]="codigoBusqueda" placeholder="Ej. E-2026-001">
+        <button class="btn btn-primary glass-btn" (click)="buscarExpediente()">Buscar</button>
+      </div>
+
+      <label class="text-white-50 small mb-1">¿No sabe el código? Buscar por Nombre</label>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control glass-input text-white" [(ngModel)]="nombreBusqueda" placeholder="Ej. Juan Pérez">
+        <button class="btn btn-secondary glass-btn text-white" (click)="buscarPorNombre()"><i class="bi bi-list-ul"></i></button>
+      </div>
+
+      <div *ngIf="resultadosNombre.length > 0" class="mt-3 table-responsive">
+        <table class="table glass-table text-white mb-0">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre Completo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let res of resultadosNombre">
+              <td class="small">{{ res.codigoPersonal }}</td>
+              <td class="small">{{ res.nombres }} {{ res.apellidos }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm glass-btn-action text-info py-0 px-2" (click)="seleccionarCodigo(res.codigoPersonal)">
+                  <i class="bi bi-arrow-right-circle"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="busquedaSinResultados" class="mt-2 text-warning small">
+        <i class="bi bi-exclamation-triangle me-1"></i> No se encontraron coincidencias.
+      </div>
+
+      <!-- Tarjeta del Estudiante -->
+      <div *ngIf="estudianteSeleccionado" class="mt-4 p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+        <h6 class="text-white mb-1">{{ estudianteSeleccionado.nombres }} {{ estudianteSeleccionado.apellidos }}</h6>
+        <p class="text-white-50 small mb-2">Código: {{ estudianteSeleccionado.codigoPersonal }}</p>
+        <hr class="border-secondary my-2">
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span class="text-white-50 small">Estado de Matrícula:</span>
+          <span class="badge" [ngClass]="modoReasignacion ? 'bg-success' : 'bg-warning text-dark'">
+            {{ modoReasignacion ? 'INSCRITO' : 'PENDIENTE' }}
+          </span>
+        </div>
+        <div *ngIf="modoReasignacion" class="mt-2 p-2 rounded bg-dark bg-opacity-50">
+          <p class="text-white small mb-0 fw-bold">{{ estudianteSeleccionado.nombreGradoActual }} - Sección {{ estudianteSeleccionado.identificadorSeccion }}</p>
+          <p class="text-white-50 small mb-0">Ciclo Activo: {{ estudianteSeleccionado.anioCicloActivo }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: FORMULARIO DE MATRÍCULA -->
+  <div class="col-md-7">
+    <div class="glass-panel p-4 h-100">
+      
+      <div *ngIf="!estudianteSeleccionado" class="d-flex flex-column justify-content-center align-items-center h-100 opacity-50">
+        <i class="bi bi-ui-checks display-1 text-white-50 mb-3"></i>
+        <h5 class="text-white fw-light">Selecciona un estudiante</h5>
+        <p class="text-white-50 text-center small">Busca al estudiante en el panel izquierdo para gestionar su inscripción.</p>
+      </div>
+
+      <!-- FORMULARIO DE NUEVA INSCRIPCIÓN -->
+      <div *ngIf="estudianteSeleccionado && !modoReasignacion">
+        <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-journal-plus me-2"></i>Proceso de Inscripción</h5>
+        
+        <form class="row g-3" [formGroup]="inscripcionForm" (ngSubmit)="inscribir()">
+          <div class="col-md-12">
+            <label class="text-white-50 small mb-1">Ciclo Escolar</label>
+            <select class="form-select glass-input text-white" formControlName="idCiclo">
+              <option value="" disabled selected>Seleccione el ciclo activo...</option>
+              <option *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo" class="text-dark">{{ ciclo.anio }}</option>
+            </select>
+          </div>
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Grado a cursar</label>
+            <select class="form-select glass-input text-white" formControlName="idGrado" (change)="cargarSeccionesPorGrado($event)">
+              <option value="" disabled selected>Seleccione el grado...</option>
+              <option *ngFor="let grado of listaGrados" [value]="grado.idGrado" class="text-dark">{{ grado.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Sección Disponible</label>
+            <select class="form-select glass-input text-white" formControlName="idSeccion">
+              <option value="" disabled selected>Seleccione la sección...</option>
+              <option *ngFor="let sec of listaSecciones" [value]="sec.idSeccion" class="text-dark">Sección {{ sec.identificador }} (Cupo: {{ sec.cupo }})</option>
+            </select>
+          </div>
+
+          <div class="col-12 text-end mt-4">
+            <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4" [disabled]="inscripcionForm.invalid">
+              MATRICULAR ESTUDIANTE
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- FORMULARIO DE CORRECCIÓN DE INSCRIPCIÓN -->
+      <div *ngIf="estudianteSeleccionado && modoReasignacion">
+        <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-pencil-square me-2"></i>Corregir Inscripción</h5>
+        
+        <div class="alert alert-warning glass-alert py-2 small border-warning text-black">
+          <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> 
+          <strong>Atención:</strong> El estudiante está matriculado en <strong>{{ estudianteSeleccionado.nombreGradoActual }}</strong>. Usa esta opción únicamente para corregir errores de matrícula reciente. Si deseas modificar solo la sección, selecciona el grado actual del estudiante.
+        </div>
+
+        <form class="row g-3 mt-2" [formGroup]="reasignacionForm" (ngSubmit)="corregirInscripcion()">
+          
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Corregir Grado</label>
+            <select class="form-select glass-input text-white" formControlName="idNuevoGrado" (change)="cargarSeccionesCorreccion($event)">
+              <option value="" disabled selected>Seleccione el grado correcto...</option>
+              <option *ngFor="let grado of listaGrados" [value]="grado.idGrado" class="text-dark">{{ grado.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-6 mt-3">
+            <label class="text-white-50 small mb-1">Nueva Sección</label>
+            <select class="form-select glass-input text-white" formControlName="idNuevaSeccion">
+              <option value="" disabled selected>Esperando grado...</option>
+              <option *ngFor="let sec of listaSecciones" [value]="sec.idSeccion" class="text-dark">Sección {{ sec.identificador }} (Cupo: {{ sec.cupo }})</option>
+            </select>
+          </div>
+          
+          <div class="col-12 text-end mt-4">
+            <button type="submit" class="btn btn-warning glass-btn text-dark fw-bold rounded-pill px-4" [disabled]="reasignacionForm.invalid">
+              GUARDAR CORRECCIÓN
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -119,9 +119,10 @@ public class EstudianteDAO {
     }
 
     public Optional<ExpedienteCompletoDTO> consultarExpediente(String codigoPersonal) throws BDException {
-        String query = "SELECT e.codigo_personal, e.nombres, e.apellidos, "
+        String query = "SELECT e.id_estudiante, e.codigo_personal, e.nombres, e.apellidos, "
                 + "e.fecha_nacimiento, e.informacion_medica, e.nombre_encargado, e.contacto_encargado, e.estado, "
-                + "g.nombre AS grado, s.identificador AS seccion, c.anio AS ciclo "
+                + "g.id_grado AS id_grado_actual, g.nombre AS grado, s.identificador AS seccion, "
+                + "c.id_ciclo, c.anio AS ciclo "
                 + "FROM estudiante e "
                 + "LEFT JOIN inscripcion i ON e.id_estudiante = i.id_estudiante "
                 + "LEFT JOIN grado g ON i.id_grado = g.id_grado "
@@ -139,16 +140,22 @@ public class EstudianteDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     expediente = new ExpedienteCompletoDTO();
+                    expediente.setIdEstudiante(rs.getInt("id_estudiante"));
                     expediente.setCodigoPersonal(rs.getString("codigo_personal"));
                     expediente.setNombres(rs.getString("nombres"));
                     expediente.setApellidos(rs.getString("apellidos"));
                     expediente.setInformacionMedica(rs.getString("informacion_medica"));
                     expediente.setNombreEncargado(rs.getString("nombre_encargado"));
                     expediente.setContactoEncargado(rs.getString("contacto_encargado"));
-
+              
                     String estadoDb = rs.getString("estado");
                     if (estadoDb != null) {
                         expediente.setEstadoAlumno(EstadoEstudiante.valueOf(estadoDb));
+                    }
+                    
+                    int idGrado = rs.getInt("id_grado_actual");
+                    if (!rs.wasNull()) {
+                        expediente.setIdGradoActual(idGrado);
                     }
 
                     expediente.setNombreGradoActual(rs.getString("grado") != null ? rs.getString("grado") : "Sin asignación");
@@ -158,6 +165,12 @@ public class EstudianteDAO {
                     if (!rs.wasNull()) {
                         expediente.setAnioCicloActivo(anioCiclo);
                     }
+                    
+                    int idCiclo = rs.getInt("id_ciclo");
+                    if (!rs.wasNull()) {
+                        expediente.setIdCicloActivo(idCiclo);
+                    }
+                    
                     LocalDate fechaNac = rs.getDate("fecha_nacimiento").toLocalDate();
                     expediente.setFechaNacimiento(fechaNac);
 
