@@ -1,0 +1,152 @@
+<div class="row mb-4">
+  
+  <!-- PANEL IZQUIERDO: SELECCIÓN Y CARGA ACTUAL -->
+  <div class="col-md-7">
+    <div class="glass-panel p-4 h-100">
+      <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-person-workspace me-2"></i>Carga Docente Actual</h5>
+      
+      <div class="row g-3 mb-4 p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+        <div class="col-md-6">
+          <label class="text-white-50 small mb-1"> Ciclo Escolar</label>
+          <select class="form-select glass-input text-white" [value]="cicloSeleccionadoId || ''" (change)="seleccionarContexto($event, 'ciclo')">
+            <option value="" disabled selected>Seleccione ciclo...</option>
+            <option *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo" class="text-dark">{{ ciclo.anio }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="text-white-50 small mb-1">Maestro</label>
+          <select class="form-select glass-input text-white" [value]="maestroSeleccionado?.idEmpleado || ''" (change)="seleccionarContexto($event, 'maestro')">
+            <option value="" disabled selected>Seleccione maestro...</option>
+            <option *ngFor="let maestro of listaMaestros" [value]="maestro.idEmpleado" class="text-dark">{{ maestro.nombres }} {{ maestro.apellidos }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabla de Asignaciones Actuales -->
+      <div *ngIf="maestroSeleccionado && cicloSeleccionadoId">
+        <h6 class="text-white-50 small mb-3">Cursos impartidos por {{ maestroSeleccionado.nombres }} en este ciclo:</h6>
+        
+        <div class="table-responsive">
+          <table class="table glass-table text-white mb-0">
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Grado y Sección</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="asignacionesActuales.length === 0">
+                <td colspan="3" class="text-center text-white-50 small py-3">Este maestro aún no tiene cursos asignados.</td>
+              </tr>
+              <tr *ngFor="let asig of asignacionesActuales">
+                <td class="fw-bold text-info">{{ asig.nombreCurso }}</td>
+                <td class="small">{{ asig.grado }} - Sección {{ asig.seccion }}</td>
+                <td>
+                  <!-- BOTÓN: TRASPASO -->
+                  <button class="btn btn-sm glass-btn-action text-warning py-0 px-2 me-1" 
+                          data-bs-toggle="modal" data-bs-target="#modalTraspaso" 
+                          (click)="abrirModalReasignacion(asig)" title="Reasignar Titular (Traspaso)">
+                    <i class="bi bi-person-lines-fill"></i>
+                  </button>
+                  <!-- Botón de Borrar Existente -->
+                  <button class="btn btn-sm glass-btn-action text-danger py-0 px-2" 
+                          (click)="desasignarCurso(asig.idAsignacion)" title="Quitar Curso">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!maestroSeleccionado || !cicloSeleccionadoId" class="text-center mt-5 opacity-50">
+        <i class="bi bi-card-checklist display-4 text-white-50 mb-2"></i>
+        <p class="text-white-50 small">Seleccione un ciclo y un maestro para ver su carga docente.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: FORMULARIO DE ASIGNACIÓN -->
+  <div class="col-md-5">
+    <div class="glass-panel p-4 h-100">
+      <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-plus-circle me-2"></i>Asignar Nuevo Curso</h5>
+      
+      <div *ngIf="!maestroSeleccionado || !cicloSeleccionadoId" class="alert alert-warning glass-alert py-2 small border-warning">
+        Por favor, complete el paso 1 y 2 en el panel izquierdo antes de asignar un curso.
+      </div>
+
+      <form class="row g-3" [formGroup]="asignacionForm" (ngSubmit)="asignarCurso()" *ngIf="maestroSeleccionado && cicloSeleccionadoId">
+        
+        <div class="col-12">
+          <label class="text-white-50 small mb-1">Curso a Impartir</label>
+          <select class="form-select glass-input text-white" formControlName="idCurso">
+            <option value="" disabled selected>Seleccione el curso...</option>
+            <option *ngFor="let curso of listaCursos" [value]="curso.idCurso" class="text-dark">{{ curso.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-12 mt-3">
+          <label class="text-white-50 small mb-1">Grado</label>
+          <select class="form-select glass-input text-white" formControlName="idGrado" (change)="cargarSecciones($event)">
+            <option value="" disabled selected>Seleccione el grado...</option>
+            <option *ngFor="let grado of listaGrados" [value]="grado.idGrado" class="text-dark">{{ grado.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-12 mt-3">
+          <label class="text-white-50 small mb-1">Sección</label>
+          <select class="form-select glass-input text-white" formControlName="idSeccion">
+            <option value="" disabled selected>Esperando grado...</option>
+            <option *ngFor="let sec of listaSecciones" [value]="sec.idSeccion" class="text-dark">Sección {{ sec.identificador }}</option>
+          </select>
+        </div>
+        
+        <div class="col-12 text-end mt-4">
+          <button type="submit" class="btn btn-primary glass-btn rounded-pill px-4 w-100" [disabled]="asignacionForm.invalid">
+            AGREGAR A LA CARGA DOCENTE
+          </button>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+  <!-- MODAL DE TRASPASO DE MAESTRO -->
+<div class="modal fade" id="modalTraspaso" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-arrow-left-right me-2"></i>Traspaso de Curso</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 text-white">
+        
+        <div class="alert alert-warning glass-alert py-2 small border-warning text-black">
+          Esta acción transferirá el curso <strong>{{ asignacionAReasignar?.nombreCurso }}</strong> ({{ asignacionAReasignar?.grado }} - {{ asignacionAReasignar?.seccion }}) a un nuevo maestro, incluyendo todo su historial de alumnos y notas.
+        </div>
+
+        <label class="text-white-50 small mb-1">Seleccionar Nuevo Maestro Titular</label>
+        <select class="form-select glass-input text-white" [(ngModel)]="idNuevoMaestroTraspaso">
+          <option value="" disabled selected>Seleccione el maestro reemplazo...</option>
+          <!-- Evita que salga el maestro actual en la lista -->
+          <ng-container *ngFor="let m of listaMaestros">
+            <option *ngIf="m.idEmpleado !== maestroSeleccionado?.idEmpleado" [value]="m.idEmpleado" class="text-dark">
+              {{ m.nombres }} {{ m.apellidos }}
+            </option>
+          </ng-container>
+        </select>
+        
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning glass-btn text-dark fw-bold rounded-pill px-4" 
+                data-bs-dismiss="modal" (click)="efectuarTraspaso()" [disabled]="!idNuevoMaestroTraspaso">
+          EFECTUAR TRASPASO
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

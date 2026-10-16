@@ -64,4 +64,50 @@ public class AsignacionMaestroResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @DELETE
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response eliminarAsignacion(@PathParam("id") int idAsignacion) {
+        try {
+            boolean eliminado = asignacionDAO.eliminarAsignacion(idAsignacion);
+
+            if (eliminado) {
+                return Response.ok("{\"mensaje\":\"Asignación eliminada exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Asignación no encontrada.\"}").build();
+            }
+        } catch (BDException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @PUT
+    @Path("/{idAsignacion}/titular/{idNuevoEmpleado}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response reasignarTitular(
+            @PathParam("idAsignacion") int idAsignacion, 
+            @PathParam("idNuevoEmpleado") int idNuevoEmpleado) {
+        
+        if (idAsignacion <= 0 || idNuevoEmpleado <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Los identificadores proporcionados no son válidos.\"}").build();
+        }
+
+        try {
+            boolean reasignado = asignacionDAO.reasignarTitular(idAsignacion, idNuevoEmpleado);
+
+            if (reasignado) {
+                return Response.ok("{\"mensaje\":\"Titular del curso reasignado exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Asignación no encontrada.\"}").build();
+            }
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

@@ -70,6 +70,11 @@
           <i class="bi bi-people me-2"></i> Inscripciones
         </a>
       </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/asignaciones" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-people me-2"></i> Asignaciones
+        </a>
+      </li>
     </ul>
 
     <div class="mt-auto">

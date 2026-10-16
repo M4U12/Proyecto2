@@ -13,6 +13,7 @@ import { Perfil } from './components/perfil/perfil';
 import { Inicio } from './components/inicio/inicio';
 import { Estudiantes } from './components/estudiantes/estudiantes';
 import { Inscripciones } from './components/inscripciones/inscripciones';
+import { Asignaciones } from './components/asignaciones/asignaciones';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -86,7 +87,13 @@ export const routes: Routes = [
         component: Inscripciones,
         canActivate: [roleGuard],
         data: { role: 'SECRETARIA'}
-      }
+      },
+      {
+        path: 'asignaciones',
+        component: Asignaciones,
+        canActivate: [roleGuard],
+        data: { role: 'ADMINISTRADOR'},
+      },
       
     ]
   },

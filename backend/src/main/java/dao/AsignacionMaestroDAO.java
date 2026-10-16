@@ -26,7 +26,7 @@ public class AsignacionMaestroDAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            throw new BDException("Error al registrar la asignación docente (Verifica que no estes asignando a un curso/seccion con maestro): " + e.getMessage(), e);
+            throw new BDException("Error al registrar la asignación docente (Verifica que no estes asignando a un curso/seccion con maestro): ", e);
         }
     }
 
@@ -66,5 +66,36 @@ public class AsignacionMaestroDAO {
         }
 
         return lista;
+    }
+    
+    public boolean eliminarAsignacion(int idAsignacion) throws BDException {
+        String query = "DELETE FROM asignacion_maestro WHERE id_asignacion = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idAsignacion);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            // si la asignación ya tiene asistencias o actividades creadas
+            throw new BDException("No se puede eliminar la asignación. Es posible que el maestro ya haya registrado alumnos, asistencias o notas en este curso.", e);
+        }
+    }
+    
+    public boolean reasignarTitular(int idAsignacion, int idNuevoEmpleado) throws BDException {
+        String query = "UPDATE asignacion_maestro SET id_empleado = ? WHERE id_asignacion = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idNuevoEmpleado);
+            ps.setInt(2, idAsignacion);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            throw new BDException("Error al reasignar el titular del curso: " + e.getMessage(), e);
+        }
     }
 }
