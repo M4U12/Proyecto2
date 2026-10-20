@@ -1,11 +1,11 @@
 package dao;
 
 import dbconection.DBConnectionSingleton;
+import dto.CursoEstudianteDTO;
 import dto.EstudianteRequestDTO;
 import dto.ExpedienteCompletoDTO;
 import enums.EstadoEstudiante;
 import excepciones.BDException;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -202,7 +202,7 @@ public class EstudianteDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    modelos.Estudiante e = new modelos.Estudiante();
+                    Estudiante e = new Estudiante();
                     e.setCodigoPersonal(rs.getString("codigo_personal"));
                     e.setNombres(rs.getString("nombres"));
                     e.setApellidos(rs.getString("apellidos"));
@@ -211,6 +211,149 @@ public class EstudianteDAO {
             }
         } catch (SQLException e) {
             throw new BDException("Error al buscar códigos por nombre: " + e.getMessage(), e);
+        }
+
+        return lista;
+    }
+    
+    public List<ExpedienteCompletoDTO> listarAlumnosPorAsignacion(int idAsignacion) throws BDException {
+        List<ExpedienteCompletoDTO> lista = new ArrayList<>();
+        String query = "SELECT e.id_estudiante, e.codigo_personal, e.nombres, e.apellidos " +
+                       "FROM asignacion_maestro am " +
+                       "INNER JOIN inscripcion i ON am.id_seccion = i.id_seccion AND am.id_ciclo = i.id_ciclo " +
+                       "INNER JOIN estudiante e ON i.id_estudiante = e.id_estudiante " +
+                       "WHERE am.id_asignacion = ? AND e.estado = 'ACTIVO' " +
+                       "ORDER BY e.apellidos ASC";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idAsignacion);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ExpedienteCompletoDTO dto = new ExpedienteCompletoDTO();
+                    dto.setIdEstudiante(rs.getInt("id_estudiante"));
+                    dto.setCodigoPersonal(rs.getString("codigo_personal"));
+                    dto.setNombres(rs.getString("nombres"));
+                    dto.setApellidos(rs.getString("apellidos"));
+                    lista.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al obtener listado de alumnos por asignación: " + e.getMessage(), e);
+        }
+
+        return lista;
+    }
+    
+    public List<CursoEstudianteDTO> listarCursosActivosPorEstudiante(int idEstudiante) throws BDException {
+        List<CursoEstudianteDTO> cursos = new ArrayList<>();
+        
+        // busca la inscripción del alumno en el ciclo abierto
+        // busca qué maestros están asignados a dar clases en esa misma sección y ciclo
+        // trae el nombre del curso y el nombre del maestro
+        String query = 
+            "SELECT am.id_asignacion, c.nombre AS nombre_curso, " +
+            "CONCAT(e.nombres, ' ', e.apellidos) AS nombre_maestro " +
+            "FROM inscripcion i " +
+            "INNER JOIN ciclo_lectivo cl ON i.id_ciclo = cl.id_ciclo " +
+            "INNER JOIN asignacion_maestro am ON i.id_seccion = am.id_seccion AND i.id_ciclo = am.id_ciclo " +
+            "INNER JOIN curso c ON am.id_curso = c.id_curso " +
+            "INNER JOIN empleado e ON am.id_empleado = e.id_empleado " +
+            "WHERE i.id_estudiante = ? AND cl.estado = 'ABIERTO'";
+
+        try (Connection connection = dbconection.DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idEstudiante);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    CursoEstudianteDTO curso = new CursoEstudianteDTO();
+                    curso.setIdAsignacion(rs.getInt("id_asignacion"));
+                    curso.setNombreCurso(rs.getString("nombre_curso"));
+                    curso.setNombreMaestro(rs.getString("nombre_maestro"));
+                    cursos.add(curso);
+                }
+            }
+        } catch (SQLException e) {
+            throw new excepciones.BDException("Error al listar los cursos del estudiante: " + e.getMessage(), e);
+        }
+        return cursos;
+    }
+    
+    public Optional<Estudiante> buscarPorId(int idEstudiante) throws BDException {
+        String query = "SELECT id_estudiante, codigo_personal, nombres, apellidos FROM estudiante WHERE id_estudiante = ?";
+        Estudiante estudiante = null;
+
+        try (Connection connection = dbconection.DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idEstudiante);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    estudiante = new Estudiante();
+                    estudiante.setIdEstudiante(rs.getInt("id_estudiante"));
+                    estudiante.setCodigoPersonal(rs.getString("codigo_personal"));
+                    estudiante.setNombres(rs.getString("nombres"));
+                    estudiante.setApellidos(rs.getString("apellidos"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al buscar el estudiante por ID: " + e.getMessage(), e);
+        }
+
+        return Optional.ofNullable(estudiante);
+    }
+    
+    public List<Estudiante> listarEstudiantes(int pagina, int limite, String filtro) throws BDException{
+        List<Estudiante> lista = new ArrayList<>();
+        int offset = (pagina - 1) * limite;
+        boolean tieneFiltro = filtro != null && !filtro.trim().isEmpty();
+
+        String query;
+        if (tieneFiltro) {
+            // busca por codigo, nombre o apellido
+            query = "SELECT * FROM estudiante WHERE codigo_personal LIKE ? OR nombres LIKE ? OR apellidos LIKE ? LIMIT ? OFFSET ?";
+        } else {
+            // trae todos ordenados por id
+            query = "SELECT * FROM estudiante ORDER BY id_estudiante DESC LIMIT ? OFFSET ?";
+        }
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            if (tieneFiltro) {
+                String comodin = "%" + filtro.trim() + "%";
+                ps.setString(1, comodin);
+                ps.setString(2, comodin);
+                ps.setString(3, comodin);
+                ps.setInt(4, limite);
+                ps.setInt(5, offset);
+            } else {
+                ps.setInt(1, limite);
+                ps.setInt(2, offset);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Estudiante e = new Estudiante();
+                    e.setIdEstudiante(rs.getInt("id_estudiante"));
+                    e.setCodigoPersonal(rs.getString("codigo_personal"));
+                    e.setNombres(rs.getString("nombres"));
+                    e.setApellidos(rs.getString("apellidos"));
+                    
+                    String estadoDb = rs.getString("estado");
+                    if (estadoDb != null) {
+                        e.setEstado(enums.EstadoEstudiante.valueOf(estadoDb));
+                    }
+                    lista.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al listar los estudiantes paginados: " + e.getMessage(), e);
         }
 
         return lista;

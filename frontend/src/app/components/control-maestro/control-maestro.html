@@ -1,0 +1,60 @@
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h4 class="text-white fw-light tracking-wide mb-1"><i class="bi bi-journal-bookmark-fill me-2"></i>Mis Clases</h4>
+      <p class="text-white-50 small mb-0" *ngIf="cicloActivo">
+        Ciclo Escolar Activo: <strong class="text-white">{{ cicloActivo.anio }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- ESTADO DE CARGA -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-info mb-3" role="status"></div>
+    <p class="text-white-50 small">Cargando tus clases asignadas...</p>
+  </div>
+
+  <!-- ESTADO SIN CICLO ACTIVO -->
+  <div *ngIf="!cargando && !cicloActivo" class="glass-panel p-5 text-center">
+    <i class="bi bi-calendar-x display-1 text-white-50 mb-3"></i>
+    <h5 class="text-white fw-light">No hay un ciclo escolar activo</h5>
+    <p class="text-white-50 small mb-0">Comuníquese con administración para que aperturen el ciclo actual.</p>
+  </div>
+
+  <!-- ESTADO SIN CLASES ASIGNADAS -->
+  <div *ngIf="!cargando && cicloActivo && misAsignaciones.length === 0" class="glass-panel p-5 text-center">
+    <i class="bi bi-inbox display-1 text-white-50 mb-3"></i>
+    <h5 class="text-white fw-light">No tienes clases asignadas</h5>
+    <p class="text-white-50 small mb-0">Aún no se te han asignado cursos para este ciclo escolar.</p>
+  </div>
+
+  <!-- CUADRÍCULA DE CLASES -->
+  <div class="row g-4" *ngIf="!cargando && misAsignaciones.length > 0">
+    <div class="col-md-6 col-lg-4" *ngFor="let clase of misAsignaciones">
+      
+      <!-- TARJETA DE CLASE -->
+      <div class="glass-panel h-100 d-flex flex-column" style="transition: transform 0.2s; " onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        
+        <div class="p-4 border-bottom border-secondary" style="background: rgba(255,255,255,0.02); border-radius: 20px 20px 0 0;">
+          <h4 class="text-white mb-1 text-truncate" [title]="clase.nombreCurso">{{ clase.nombreCurso }}</h4>
+          <p class="text-white-50 mb-0 small"><i class="bi bi-mortarboard me-1"></i>{{ clase.grado }} - Sección {{ clase.seccion }}</p>
+        </div>
+        
+        <div class="p-4 mt-auto">
+          <div class="d-grid gap-2">
+            
+            <button class="btn btn-outline-light glass-btn rounded-pill text-start px-3" 
+                    (click)="irAAsistencia(clase.idAsignacion, clase.nombreCurso, clase.grado + ' - ' + clase.seccion)">
+              <i class="bi bi-calendar-check text-success me-2"></i> Pasar Asistencia
+            </button>
+            
+            <button class="btn btn-outline-light glass-btn rounded-pill text-start px-3"
+                    (click)="irANotas(clase.idAsignacion, clase.nombreCurso, clase.grado + ' - ' + clase.seccion)">
+              <i class="bi bi-journal-text text-warning me-2"></i> Gestionar Zonas y Notas
+            </button>       
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

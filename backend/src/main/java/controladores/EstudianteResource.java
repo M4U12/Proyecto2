@@ -1,4 +1,5 @@
 package controladores;
+
 import dao.EstudianteDAO;
 import dto.EstudianteRequestDTO;
 import dto.ExpedienteCompletoDTO;
@@ -7,12 +8,13 @@ import excepciones.BDException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import seguridad.Secured; 
+import seguridad.Secured;
 import java.util.Optional;
 import dao.UsuarioDAO;
+import modelos.Estudiante;
 
 @Path("/estudiantes")
-@Secured 
+@Secured
 public class EstudianteResource {
 
     private EstudianteDAO estudianteDAO = new EstudianteDAO();
@@ -80,7 +82,7 @@ public class EstudianteResource {
     public Response cambiarEstadoEstudiante(@PathParam("codigo") String codigoPersonal, @PathParam("nuevoEstado") String estadoStr) {
         try {
             EstadoEstudiante nuevoEstado = EstadoEstudiante.valueOf(estadoStr.toUpperCase());
-            
+
             boolean cambiado = estudianteDAO.cambiarEstadoEstudiante(codigoPersonal, nuevoEstado);
             if (cambiado) {
                 return Response.ok("{\"mensaje\":\"Estado del estudiante actualizado exitosamente a " + nuevoEstado.name() + ".\"}").build();
@@ -115,7 +117,7 @@ public class EstudianteResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
-    
+
     @GET
     @Path("/buscar")
     @Produces(MediaType.APPLICATION_JSON)
@@ -124,9 +126,74 @@ public class EstudianteResource {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"El parámetro de búsqueda no puede estar vacío.\"}").build();
         }
-        
+
         try {
             return Response.ok(estudianteDAO.buscarCodigosPorNombre(nombre)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Path("/asignacion/{idAsignacion}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarAlumnosPorAsignacion(@PathParam("idAsignacion") int idAsignacion) {
+        if (idAsignacion <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"ID de asignación inválido.\"}").build();
+        }
+        try {
+            return Response.ok(estudianteDAO.listarAlumnosPorAsignacion(idAsignacion)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Path("/{id}/cursos")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerCursosDeEstudiante(@PathParam("id") int idEstudiante) {
+        try {
+            return Response.ok(estudianteDAO.listarCursosActivosPorEstudiante(idEstudiante)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Path("/id/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerPorId(@PathParam("id") int idEstudiante) {
+        if (idEstudiante <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"ID de estudiante inválido.\"}").build();
+        }
+
+        try {
+            Optional<Estudiante> estOpt = estudianteDAO.buscarPorId(idEstudiante);
+
+            if (estOpt.isPresent()) {
+                return Response.ok(estOpt.get()).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Estudiante no encontrado.\"}").build();
+            }
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarEstudiantes(@QueryParam("pagina") @DefaultValue("1") int pagina,
+            @QueryParam("limite") @DefaultValue("10") int limite,
+            @QueryParam("filtro") String filtro){
+        try {
+            return Response.ok(estudianteDAO.listarEstudiantes(pagina, limite, filtro)).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();

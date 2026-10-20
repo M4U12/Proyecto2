@@ -160,17 +160,6 @@ export class Estudiantes {
     this.cdr.detectChanges();
   }
 
-  cambiarEstado(nuevoEstado: string) {
-    if (!this.expedienteActual) return;
-    
-    this.estudianteService.cambiarEstado(this.expedienteActual.codigoPersonal, nuevoEstado).subscribe({
-      next: () => {
-        alert(`Estado actualizado a ${nuevoEstado}`);
-        this.buscarExpediente();
-      },
-      error: (err) => alert('Error: ' + (err.error?.error || 'No se pudo cambiar el estado.'))
-    });
-  }
 
   soloNumeros(event: any): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;

@@ -4,6 +4,7 @@ import { UsuarioService } from '../../services/usuario.service';
 import { EmpleadoService } from '../../services/empleado.service'; 
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
+import { EstudianteService } from '../../services/estudiante.service';
 
 @Component({
   selector: 'app-perfil',
@@ -23,6 +24,7 @@ export class Perfil implements OnInit {
     private fb: FormBuilder, 
     private usuarioService: UsuarioService,
     private empleadoService: EmpleadoService,
+    private estudianteService: EstudianteService,
     private authService: AuthService, 
     private cdr: ChangeDetectorRef 
   ) {
@@ -42,6 +44,7 @@ export class Perfil implements OnInit {
     }
 
     const idEmpleado = this.authService.obtenerIdEmpleado();
+    const idEstudiante = this.authService.obtenerIdEstudiante(); 
 
     if (idEmpleado) {
       this.empleadoService.obtenerPorId(idEmpleado).subscribe({
@@ -55,9 +58,21 @@ export class Perfil implements OnInit {
           this.cdr.detectChanges(); 
         }
       });
+    } else if (idEstudiante) {
+      this.estudianteService.obtenerPorId(idEstudiante).subscribe({
+        next: (datos: any) => {
+           this.nombreActual = datos.nombres + ' ' + datos.apellidos;
+           this.cdr.detectChanges();
+        },
+        error: (err: any) => {
+          console.error('Error al cargar nombre del estudiante', err);
+          this.nombreActual = 'Mi Perfil'; 
+          this.cdr.detectChanges(); 
+        }
+      });
     } else {
-       // Por si el usuario no es empleado (es estudiante)
-       this.nombreActual = 'Mi Perfil'; 
+      this.nombreActual = 'Mi Perfil';
+      this.cdr.detectChanges(); 
     }
   }
 

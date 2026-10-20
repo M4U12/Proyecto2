@@ -82,4 +82,24 @@ public class AsistenciaResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @GET
+    @Path("/asignacion/{idAsignacion}/fecha/{fecha}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarAsistencia(
+            @PathParam("idAsignacion") int idAsignacion, 
+            @PathParam("fecha") String fechaStr) {
+        
+        try {
+            java.time.LocalDate fecha = java.time.LocalDate.parse(fechaStr);
+            return Response.ok(asistenciaDAO.consultarAsistenciaPorFecha(idAsignacion, fecha)).build();
+            
+        } catch (java.time.format.DateTimeParseException e) {
+             return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Formato de fecha inválido. Use YYYY-MM-DD.\"}").build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

@@ -1,0 +1,93 @@
+<div class="mb-4">
+  
+  <!-- CABECERA Y CONTROLES -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+    <div>
+      <button class="btn btn-sm btn-outline-light rounded-pill mb-3" (click)="volver()">
+        <i class="bi bi-arrow-left me-1"></i> Volver a Mis Clases
+      </button>
+      <h4 class="text-white fw-light tracking-wide mb-1"><i class="bi bi-calendar-check me-2"></i>Control de Asistencia</h4>
+      <p class="text-info small mb-0 fw-bold" *ngIf="infoClase">
+        {{ infoClase.curso }} | <span class="text-white-50 fw-normal">{{ infoClase.descripcion }}</span>
+      </p>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div class="glass-panel p-2 px-3 d-flex align-items-center">
+      <label class="text-white-50 small me-2 mb-0">Fecha de Clase:</label>
+      <input type="date" class="form-control form-control-sm glass-input text-white border-0 bg-transparent" 
+             [(ngModel)]="fechaSeleccionada" (change)="cambiarFecha()" style="width: 130px; cursor: pointer;">
+    </div>
+  </div>
+
+  <!-- ESTADO DE CARGA -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-success mb-3" role="status"></div>
+    <p class="text-white-50 small">Sincronizando registros con la base de datos...</p>
+  </div>
+
+  <!-- TABLA DE ASISTENCIA -->
+  <div class="glass-panel p-4" *ngIf="!cargando">
+    
+    <!-- ESTADO VACÍO -->
+    <div *ngIf="listaAlumnos.length === 0" class="text-center opacity-50 py-5">
+      <i class="bi bi-people display-4 mb-3"></i>
+      <h5 class="text-white fw-light">No hay alumnos en esta clase</h5>
+    </div>
+
+    <div class="table-responsive" *ngIf="listaAlumnos.length > 0">
+      <table class="table glass-table text-white mb-0 align-middle">
+        <thead>
+          <tr>
+            <th style="width: 10%;">Código</th>
+            <th style="width: 40%;">Estudiante</th>
+            <th style="width: 15%;" class="text-center">Estado Actual</th>
+            <th style="width: 35%;" class="text-center">Pasar Lista</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let al of listaAlumnos">
+            <td class="small text-white-50">{{ al.codigoPersonal }}</td>
+            <td class="fw-bold">{{ al.apellidos }}, {{ al.nombres }}</td>
+            
+            <td class="text-center">
+              <span class="badge" 
+                    [ngClass]="{
+                      'bg-secondary bg-opacity-50 text-white-50': al.estadoAsistencia === 'SIN REGISTRO',
+                      'bg-success': al.estadoAsistencia === 'PRESENTE',
+                      'bg-danger': al.estadoAsistencia === 'AUSENTE',
+                      'bg-warning text-dark': al.estadoAsistencia === 'JUSTIFICADO'
+                    }">
+                {{ al.estadoAsistencia === 'SIN REGISTRO' ? 'PENDIENTE' : al.estadoAsistencia }}
+              </span>
+            </td>
+
+            <td class="text-center">
+              <div class="btn-group shadow-sm" role="group">
+                <!-- Botón PRESENTE -->
+                <button type="button" class="btn btn-sm px-3"
+                        [ngClass]="al.estadoAsistencia === 'PRESENTE' ? 'btn-success' : 'btn-outline-success glass-btn'"
+                        (click)="marcarAsistencia(al, 'PRESENTE')" title="Marcar Presente">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <!-- Botón AUSENTE -->
+                <button type="button" class="btn btn-sm px-3"
+                        [ngClass]="al.estadoAsistencia === 'AUSENTE' ? 'btn-danger' : 'btn-outline-danger glass-btn'"
+                        (click)="marcarAsistencia(al, 'AUSENTE')" title="Marcar Ausente">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+                <!-- Botón JUSTIFICADO -->
+                <button type="button" class="btn btn-sm px-3"
+                        [ngClass]="al.estadoAsistencia === 'JUSTIFICADO' ? 'btn-warning text-dark' : 'btn-outline-warning glass-btn text-warning'"
+                        (click)="marcarAsistencia(al, 'JUSTIFICADO')" title="Ausencia Justificada">
+                  <i class="bi bi-file-medical"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

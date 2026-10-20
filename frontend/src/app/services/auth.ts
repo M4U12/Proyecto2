@@ -75,6 +75,6 @@ export class AuthService {
 
   obtenerIdEstudiante(): number | null {
     const payload = this.decodificarToken();
-    return payload ? payload.idEstudiante : null;
+    return payload ? payload.id_estudiante : null;
   }
 }

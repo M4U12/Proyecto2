@@ -1,0 +1,61 @@
+<div class="mb-4">
+  <div class="mb-4">
+    <button class="btn btn-sm btn-outline-light rounded-pill mb-3" (click)="volver()">
+      <i class="bi bi-arrow-left me-1"></i> Volver a Mis Cursos
+    </button>
+  </div>
+
+  <div class="glass-panel p-4 mx-auto" style="max-width: 800px;">
+    <div class="text-center mb-4">
+      <h3 class="text-white fw-light tracking-wide mb-1"><i class="bi bi-card-checklist me-2"></i>Boleta de Calificaciones</h3>
+      <h6 class="text-info fw-bold" *ngIf="infoClase">{{ infoClase.curso }}</h6>
+    </div>
+
+    <!-- Spinner de carga -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-info mb-3" role="status"></div>
+      <p class="text-white-50 small">Consultando registros...</p>
+    </div>
+
+    <!-- Contenido de la Boleta -->
+    <div *ngIf="!cargando">
+      
+      <!-- Mensaje si el maestro no ha creado actividades -->
+      <div *ngIf="boletaNotas.length === 0" class="text-center opacity-50 py-5">
+        <i class="bi bi-journal-x display-4 mb-3"></i>
+        <h5 class="text-white fw-light">Aún no hay actividades asignadas a este curso</h5>
+      </div>
+
+      <!-- Tabla de Notas -->
+      <div class="table-responsive" *ngIf="boletaNotas.length > 0">
+        <table class="table glass-table text-white mb-0 align-middle">
+          <thead class="bg-dark bg-opacity-25">
+            <tr>
+              <th class="fw-bold text-white-50 small">ACTIVIDAD / TAREA</th>
+              <th class="text-center fw-bold text-white-50 small">VALOR</th>
+              <th class="text-center fw-bold text-white-50 small">NOTA OBTENIDA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let nota of boletaNotas">
+              <td class="py-3">
+                <span class="d-block">{{ nota.nombreActividad }}</span>
+              </td>
+              <td class="text-center text-white-50">{{ nota.ponderacion }} pts</td>
+              <td class="text-center fw-bold fs-5" 
+                  [ngClass]="nota.punteoObtenido === null ? 'text-warning' : 'text-success'">
+                {{ nota.punteoObtenido === null ? 'Pendiente' : nota.punteoObtenido }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-dark bg-opacity-50">
+              <td colspan="2" class="text-end fw-bold py-3 text-white-50">ZONA TOTAL ACUMULADA:</td>
+              <td class="text-center fw-bold text-info fs-4 py-3">{{ zonaTotal | number:'1.1-2' }} pts</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

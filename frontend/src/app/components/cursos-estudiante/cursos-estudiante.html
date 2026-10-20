@@ -1,0 +1,49 @@
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h3 class="text-white fw-light tracking-wide mb-1"><i class="bi bi-backpack me-2"></i>Mis Cursos</h3>
+      <p class="text-info small mb-0 fw-bold">Ciclo Escolar Actual</p>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-info mb-3" role="status"></div>
+    <p class="text-white-50 small">Cargando sus clases...</p>
+  </div>
+
+  <div class="row g-4" *ngIf="!cargando">
+    
+    <!-- Mensaje si no tiene cursos -->
+    <div class="col-12" *ngIf="listaCursos.length === 0">
+      <div class="glass-panel p-5 text-center opacity-75">
+        <i class="bi bi-calendar-x display-4 text-white-50 mb-3"></i>
+        <h5 class="text-white fw-light">Aún no tiene cursos asignados</h5>
+        <p class="text-white-50 small">Por favor, consulte con la secretaría académica.</p>
+      </div>
+    </div>
+
+    <!-- Tarjetas de Cursos -->
+    <div class="col-md-4" *ngFor="let curso of listaCursos">
+      <div class="glass-panel p-4 h-100 d-flex flex-column hover-lift transition-all">
+        
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="icon-box glass-btn text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+            <i class="bi bi-book fs-5"></i>
+          </div>
+        </div>
+        
+        <h5 class="text-white mb-1">{{ curso.nombreCurso }}</h5>
+        <p class="text-white-50 small mb-4"><i class="bi bi-person-video3 me-1"></i> Prof. {{ curso.nombreMaestro }}</p>
+
+        <div class="mt-auto pt-3 border-top border-secondary d-flex justify-content-between">
+          <button class="btn btn-primary glass-btn rounded-pill w-100" 
+                  (click)="irABoleta(curso.idAsignacion, curso.nombreCurso)">
+            <i class="bi bi-card-checklist me-2"></i> Ver Notas
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

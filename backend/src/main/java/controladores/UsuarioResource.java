@@ -138,4 +138,39 @@ public class UsuarioResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @POST
+    @Path("/estudiante")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response crearUsuarioEstudiante(dto.RegistroUsuarioEstudianteDTO request) {
+        if (request.getIdEstudiante() <= 0 || request.getCorreo() == null || request.getPassword() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"ID de estudiante, correo y contraseña son obligatorios.\"}").build();
+        }
+
+        try {
+            Usuario usuario = new Usuario();
+            usuario.setCorreo(request.getCorreo());
+            usuario.setPassword(request.getPassword());
+            usuario.setRol(enums.Rol.ESTUDIANTE);
+            usuario.setEstado(true);
+            usuario.setIdEstudiante(request.getIdEstudiante());
+
+            boolean registrado = usuarioDAO.registrarUsuario(usuario);
+
+            if (registrado) {
+                return Response.status(Response.Status.CREATED)
+                        .entity("{\"mensaje\":\"Credenciales de estudiante creadas exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\":\"No se pudo crear el usuario.\"}").build();
+            }
+
+        } catch (BDException e) {
+            // si el correo ya existe en la bd saltará la excepción
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

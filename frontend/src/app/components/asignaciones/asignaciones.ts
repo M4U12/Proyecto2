@@ -55,9 +55,8 @@ export class Asignaciones implements OnInit {
       this.cdr.detectChanges();
     });
 
-    // Filtra solo a los MAESTROS de la nómina
+    // filtra solo a los maestros
     this.empleadoService.getEmpleados(1, 100).subscribe(res => {
-      // Ajusta 'puesto' o 'rolSistema' según cómo los identifiques en tu BD
       this.listaMaestros = res.filter((e: any) => e.rolSistema === 'MAESTRO');
       this.cdr.detectChanges();
     });

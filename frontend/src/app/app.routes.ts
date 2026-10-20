@@ -14,6 +14,12 @@ import { Inicio } from './components/inicio/inicio';
 import { Estudiantes } from './components/estudiantes/estudiantes';
 import { Inscripciones } from './components/inscripciones/inscripciones';
 import { Asignaciones } from './components/asignaciones/asignaciones';
+import { ControlMaestro } from './components/control-maestro/control-maestro';
+import { Asistencias } from './components/asistencias/asistencias';
+import { Notas } from './components/notas/notas';
+import { CursosEstudiante } from './components/cursos-estudiante/cursos-estudiante';
+import { Boleta } from './components/boleta/boleta';
+import { AdminEstudiantes } from './components/admin-estudiantes/admin-estudiantes';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -93,6 +99,42 @@ export const routes: Routes = [
         component: Asignaciones,
         canActivate: [roleGuard],
         data: { role: 'ADMINISTRADOR'},
+      },
+      { 
+        path: 'control-maestro', 
+        component: ControlMaestro,
+        canActivate: [roleGuard],
+        data: { role: 'MAESTRO' }
+      },
+      { 
+        path: 'asistencia', 
+        component: Asistencias,
+        canActivate: [roleGuard],
+        data: { role: 'MAESTRO' }
+      },
+      { 
+        path: 'notas', 
+        component: Notas,
+        canActivate: [roleGuard],
+        data: { role: 'MAESTRO' }
+      },
+      { 
+        path: 'cursos-estudiante', 
+        component: CursosEstudiante,
+        canActivate: [roleGuard],
+        data: { role: 'ESTUDIANTE' }
+      },
+      { 
+        path: 'boleta', 
+        component: Boleta,
+        canActivate: [roleGuard],
+        data: { role: 'ESTUDIANTE' }
+      },
+      { 
+        path: 'admin-estudiantes', 
+        component: AdminEstudiantes,
+        canActivate: [roleGuard],
+        data: { role: 'ADMINISTRADOR' } 
       },
       
     ]

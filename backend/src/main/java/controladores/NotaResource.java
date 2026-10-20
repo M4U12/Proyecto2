@@ -85,4 +85,31 @@ public class NotaResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @GET
+    @Path("/actividad/{idActividad}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarNotasPorActividad(@PathParam("idActividad") int idActividad) {
+        try {
+            return Response.ok(notaDAO.listarNotasPorActividad(idActividad)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/boleta/estudiante/{idEstudiante}/asignacion/{idAsignacion}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerBoleta(
+            @PathParam("idEstudiante") int idEstudiante,
+            @PathParam("idAsignacion") int idAsignacion) {
+
+        try {
+            return Response.ok(notaDAO.obtenerBoletaAlumno(idEstudiante, idAsignacion)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }

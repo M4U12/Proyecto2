@@ -75,6 +75,21 @@
           <i class="bi bi-people me-2"></i> Asignaciones
         </a>
       </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'MAESTRO'">
+        <a routerLink="/dashboard/control-maestro" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-people me-2"></i> Control Maestro
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ESTUDIANTE'">
+        <a routerLink="/dashboard/cursos-estudiante" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-people me-2"></i> Cursos de Estudiante
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+        <a routerLink="/dashboard/admin-estudiantes" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-people me-2"></i> Gestión de Alumnos
+        </a>
+      </li>
     </ul>
 
     <div class="mt-auto">

@@ -1,0 +1,110 @@
+<div class="mb-4">
+  
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <button class="btn btn-sm btn-outline-light rounded-pill mb-3" (click)="volver()">
+        <i class="bi bi-arrow-left me-1"></i> Volver a Mis Clases
+      </button>
+      <h4 class="text-white fw-light tracking-wide mb-1"><i class="bi bi-journal-text me-2"></i>Cuadro de Zonas y Notas</h4>
+      <p class="text-info small mb-0 fw-bold" *ngIf="infoClase">
+        {{ infoClase.curso }} | <span class="text-white-50 fw-normal">{{ infoClase.descripcion }}</span>
+      </p>
+    </div>
+    
+    <div>
+      <button class="btn btn-primary glass-btn rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalActividad" (click)="abrirModalActividad(null)">
+        <i class="bi bi-plus-lg me-1"></i> Crear Actividad
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-info mb-3" role="status"></div>
+    <p class="text-white-50 small">Cargando cuadro de calificaciones...</p>
+  </div>
+
+  <!-- CUADRÍCULA DE NOTAS -->
+  <div class="glass-panel p-4" *ngIf="!cargando">
+    
+    <div *ngIf="listaAlumnos.length === 0" class="text-center opacity-50 py-5">
+      <i class="bi bi-people display-4 mb-3"></i>
+      <h5 class="text-white fw-light">No hay alumnos en esta clase</h5>
+    </div>
+
+    <div class="table-responsive" *ngIf="listaAlumnos.length > 0">
+      <table class="table glass-table text-white mb-0 align-middle table-bordered border-secondary">
+        <thead>
+          <tr>
+            <th style="min-width: 200px;">Estudiante</th>
+            
+            <!-- Actividades -->
+            <th *ngFor="let act of listaActividades" class="text-center" style="min-width: 120px;">
+              <div class="d-flex flex-column align-items-center">
+                <span class="small fw-bold text-info" [title]="act.descripcion">{{ act.nombre }}</span>
+                <span class="badge bg-secondary bg-opacity-50 mt-1">{{ act.ponderacion }} pts</span>
+                <button class="btn btn-link text-white-50 p-0 mt-1" style="font-size: 0.8rem;" 
+                        data-bs-toggle="modal" data-bs-target="#modalActividad" (click)="abrirModalActividad(act)">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+              </div>
+            </th>
+
+            <th class="text-center bg-dark bg-opacity-25" style="min-width: 100px;">PUNTEO TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let al of listaAlumnos">
+            <td class="fw-bold small">{{ al.apellidos }}, {{ al.nombres }}</td>
+            
+            <!-- Celdas de Input de Notas -->
+            <td *ngFor="let act of listaActividades" class="text-center p-1">
+              <input type="number" class="form-control form-control-sm glass-input text-center text-white" 
+                     [value]="al.notas[act.idActividad]?.punteo !== undefined ? al.notas[act.idActividad].punteo : ''"
+                     (blur)="guardarNota(al, act, $event)"
+                     placeholder="-" min="0" [max]="act.ponderacion" style="background: transparent;">
+            </td>
+
+            <!-- Total Calculado -->
+            <td class="text-center bg-dark bg-opacity-25 fw-bold text-warning">
+              {{ al.zonaTotal | number:'1.1-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACTIVIDAD -->
+<div class="modal fade" id="modalActividad" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-journal-plus me-2"></i>{{ actividadEditando ? 'Editar Actividad' : 'Nueva Actividad' }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form class="row g-3" [formGroup]="actividadForm">
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Nombre de la Tarea/Examen</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="nombre" placeholder="Ej. Parcial 1">
+          </div>
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Descripción Corta (Opcional)</label>
+            <textarea class="form-control glass-input text-white" formControlName="descripcion" rows="2"></textarea>
+          </div>
+          <div class="col-12 mt-3">
+            <label class="text-white-50 small mb-1">Ponderación Total (Puntos Netos)</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="ponderacion" min="0.1" step="0.5">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary glass-btn rounded-pill px-4" data-bs-dismiss="modal" (click)="guardarActividad()" [disabled]="actividadForm.invalid">
+          Guardar Actividad
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

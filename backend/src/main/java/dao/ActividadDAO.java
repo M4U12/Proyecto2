@@ -2,10 +2,14 @@ package dao;
 
 import dbconection.DBConnectionSingleton;
 import dto.ActividadRequestDTO;
+import dto.ActividadResponseDTO;
 import excepciones.BDException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActividadDAO {
 
@@ -24,7 +28,7 @@ public class ActividadDAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            throw new BDException("Error al crear la actividad: " + e.getMessage(), e);
+            throw new BDException("Error al crear la actividad: ", e);
         }
     }
 
@@ -44,5 +48,30 @@ public class ActividadDAO {
         } catch (SQLException e) {
             throw new BDException("Error al modificar la actividad: " + e.getMessage(), e);
         }
+    }
+    
+    public List<ActividadResponseDTO> listarActividadesPorAsignacion(int idAsignacion) throws BDException {
+        List<ActividadResponseDTO> lista = new ArrayList<>();
+        String query = "SELECT id_actividad, nombre, descripcion, ponderacion FROM actividad WHERE id_asignacion = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idAsignacion);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ActividadResponseDTO act = new ActividadResponseDTO();
+                    act.setIdActividad(rs.getInt("id_actividad"));
+                    act.setNombre(rs.getString("nombre"));
+                    act.setDescripcion(rs.getString("descripcion"));
+                    act.setPonderacion(rs.getDouble("ponderacion"));
+                    lista.add(act);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al listar actividades: " + e.getMessage(), e);
+        }
+        return lista;
     }
 }

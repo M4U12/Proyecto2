@@ -2,12 +2,17 @@ package dao;
 
 import dbconection.DBConnectionSingleton;
 import dto.AsistenciaRequestDTO;
+import dto.AsistenciaResponseDTO;
 import enums.EstadoAsistencia;
 import excepciones.BDException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AsistenciaDAO {
 
@@ -45,5 +50,37 @@ public class AsistenciaDAO {
         } catch (SQLException e) {
             throw new BDException("Error al modificar la asistencia: " + e.getMessage(), e);
         }
+    }
+    
+    public List<AsistenciaResponseDTO> consultarAsistenciaPorFecha(int idAsignacion, LocalDate fecha) throws BDException {
+        List<AsistenciaResponseDTO> lista = new ArrayList<>();
+        
+        String query = "SELECT a.id_asistencia, e.id_estudiante, e.nombres, e.apellidos, a.fecha, a.estado " +
+                       "FROM asistencia a " +
+                       "INNER JOIN estudiante e ON a.id_estudiante = e.id_estudiante " +
+                       "WHERE a.id_asignacion = ? AND a.fecha = ?";
+
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, idAsignacion);
+            ps.setDate(2, Date.valueOf(fecha));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
+                    dto.setIdAsistencia(rs.getInt("id_asistencia"));
+                    dto.setIdEstudiante(rs.getInt("id_estudiante"));
+                    dto.setNombres(rs.getString("nombres"));
+                    dto.setApellidos(rs.getString("apellidos"));
+                    dto.setFecha(rs.getDate("fecha").toLocalDate());
+                    dto.setEstado(rs.getString("estado"));
+                    lista.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al consultar asistencias: " + e.getMessage(), e);
+        }
+        return lista;
     }
 }

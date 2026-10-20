@@ -58,7 +58,7 @@ public class AuthResource {
 
                 // se envia a angular
                 String jsonResponse = String.format(
-                        "{\"token\":\"%s\", \"rol\":\"%s\", \"correo\":\"%s\"}",
+                        "{\"token\":\"%s\", \"rol\":\"%s\", \"correo\":\"%s\", \"idEmpleado\":%s, \"idEstudiante\":%s}",
                         token, usuario.getRol().name(), usuario.getCorreo(), usuario.getIdEmpleado(), usuario.getIdEstudiante()
                 );
 

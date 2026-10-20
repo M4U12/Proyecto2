@@ -67,4 +67,16 @@ public class ActividadResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+    
+    @GET
+    @Path("/asignacion/{idAsignacion}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarActividades(@PathParam("idAsignacion") int idAsignacion) {
+        try {
+            return Response.ok(actividadDAO.listarActividadesPorAsignacion(idAsignacion)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
 }
