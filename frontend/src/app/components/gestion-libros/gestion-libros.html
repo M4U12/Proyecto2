@@ -1,0 +1,151 @@
+<div class="row g-4 position-relative">
+  
+  <!-- PANEL IZQUIERDO: Listado y Buscador -->
+  <div [ngClass]="mostrarFormulario ? 'col-md-7' : 'col-md-12'">
+    <div class="glass-panel p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="text-white fw-light tracking-wide mb-0">
+          <i class="bi bi-book me-2"></i> Catálogo de Biblioteca
+        </h5>
+        <button class="btn btn-warning glass-btn rounded-pill px-4 text-dark fw-bold" (click)="abrirNuevo()" *ngIf="!mostrarFormulario">
+          <i class="bi bi-plus-circle me-1"></i> Registrar Libro
+        </button>
+      </div>
+
+      <div class="input-group mb-4">
+        <span class="input-group-text bg-transparent border-secondary text-white-50"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control glass-input text-white" placeholder="Buscar por código, título o autor..." 
+               [(ngModel)]="filtroBusqueda" (keyup.enter)="buscar()">
+        <button class="btn btn-primary glass-btn" (click)="buscar()">Buscar</button>
+      </div>
+
+      <div *ngIf="cargando" class="text-center py-4">
+        <div class="spinner-border text-info" role="status"></div>
+      </div>
+
+      <div class="table-responsive" *ngIf="!cargando">
+        <table class="table glass-table text-white align-middle">
+          <thead>
+            <tr>
+              <th>Portada</th>
+              <th>Info. Principal</th>
+              <th class="text-center">Copias (Disponibles)</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="listaLibros.length === 0">
+              <td colspan="5" class="text-center text-white-50 py-4">No se encontraron libros en el catálogo.</td>
+            </tr>
+            <tr *ngFor="let libro of listaLibros">
+              <td style="width: 70px;">
+                <img *ngIf="libro.imagen" [src]="libro.imagen" class="rounded object-fit-cover shadow-sm" width="50" height="70" alt="Portada">
+                <div *ngIf="!libro.imagen" class="bg-dark bg-opacity-50 rounded d-flex align-items-center justify-content-center border border-secondary" style="width: 50px; height: 70px;">
+                  <i class="bi bi-image text-white-50"></i>
+                </div>
+              </td>
+              <td>
+                <div class="small text-info fw-bold mb-1">{{ libro.codigo }}</div>
+                <div class="fw-bold">{{ libro.titulo }}</div>
+                <div class="small text-white-50">{{ libro.autor }}</div>
+              </td>
+              <td class="text-center">
+                <span class="fs-5 fw-bold" [ngClass]="libro.copiasDisponibles === 0 ? 'text-danger' : 'text-success'">
+                  {{ libro.copiasDisponibles }}
+                </span>
+                <span class="text-white-50 small"> / {{ libro.copiasTotales }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="libro.estado ? 'bg-success' : 'bg-secondary'">
+                  {{ libro.estado ? 'ACTIVO' : 'INACTIVO' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm glass-btn-action text-info me-2" (click)="abrirEdicion(libro)" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm glass-btn-action" 
+                        [ngClass]="libro.estado ? 'text-danger' : 'text-success'" 
+                        (click)="cambiarEstado(libro.idLibro, libro.estado)" 
+                        [title]="libro.estado ? 'Desactivar' : 'Activar'">
+                  <i class="bi" [ngClass]="libro.estado ? 'bi-dash-circle' : 'bi-check-circle'"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
+          <span class="text-white-50 small">Página {{ paginaActual }}</span>
+          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(1)" [disabled]="listaLibros.length < limitePorPagina">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: Formulario Visible solo si mostrarFormulario es true -->
+  <div class="col-md-5" *ngIf="mostrarFormulario">
+    <div class="glass-panel p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+        <h5 class="text-white m-0">{{ modoEdicion ? 'Editar Libro' : 'Nuevo Libro' }}</h5>
+        <button class="btn-close btn-close-white" (click)="cerrarFormulario()"></button>
+      </div>
+
+      <form [formGroup]="libroForm" (ngSubmit)="guardarLibro()">
+        
+        <!-- Carga de Imagen Base64 -->
+        <div class="mb-4 text-center">
+          <div class="position-relative d-inline-block mb-2">
+            <img *ngIf="imagenBase64" [src]="imagenBase64" class="rounded shadow border border-secondary object-fit-cover" width="120" height="170">
+            <div *ngIf="!imagenBase64" class="bg-dark bg-opacity-50 rounded border border-secondary d-flex flex-column align-items-center justify-content-center" style="width: 120px; height: 170px;">
+              <i class="bi bi-camera fs-1 text-white-50 mb-2"></i>
+              <span class="small text-white-50">Sin Portada</span>
+            </div>
+            <button type="button" *ngIf="imagenBase64" class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle rounded-circle" (click)="removerImagen()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <div>
+            <input type="file" id="inputFile" class="d-none" accept="image/*" (change)="onFileSelected($event)">
+            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 mt-2" onclick="document.getElementById('inputFile').click()">
+              <i class="bi bi-upload me-1"></i> Subir Portada
+            </button>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">Código (ISBN o Interno)</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="codigo" placeholder="LIB-001">
+          </div>
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">Copias Físicas</label>
+            <input type="number" class="form-control glass-input text-white" formControlName="copiasTotales" min="1">
+          </div>
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Título de la Obra</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="titulo">
+          </div>
+          <div class="col-12">
+            <label class="text-white-50 small mb-1">Autor(es)</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="autor">
+          </div>
+          <div class="col-12 mb-3">
+            <label class="text-white-50 small mb-1">Editorial (Opcional)</label>
+            <input type="text" class="form-control glass-input text-white" formControlName="editorial">
+          </div>
+        </div>
+
+        <div class="text-end border-top border-secondary pt-3 mt-2">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3 me-2" (click)="cerrarFormulario()">Cancelar</button>
+          <button type="submit" class="btn btn-info glass-btn rounded-pill px-4 text-dark fw-bold" [disabled]="libroForm.invalid">
+            <i class="bi bi-save me-1"></i> {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -24,6 +24,7 @@ public class JakartaRestConfiguration extends Application {
         resources.add(controladores.PersonalResource.class);
         resources.add(controladores.SeccionResource.class);
         resources.add(controladores.UsuarioResource.class);
+        resources.add(controladores.LibroResource.class);
         
         return resources;
     }

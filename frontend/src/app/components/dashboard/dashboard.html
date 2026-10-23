@@ -40,7 +40,7 @@
           <i class="bi bi-journal-bookmark me-2"></i> Carreras
         </a>
       </li>
-      <li class="nav-item" *ngIf="rolUsuario === 'ADMINISTRADOR'">
+      <li class="nav-item" *ngIf="rolUsuario === 'SUPER_ADMIN'">
         <a routerLink="/dashboard/niveles" routerLinkActive="active" class="nav-link glass-nav-link">
           <i class="bi bi-layers me-2"></i> Niveles Educativos
         </a>
@@ -90,6 +90,21 @@
           <i class="bi bi-people me-2"></i> Gestión de Alumnos
         </a>
       </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'BIBLIOTECARIO'">
+        <a routerLink="/dashboard/gestion-libros" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-collection"></i> Gestión de Libros
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'BIBLIOTECARIO'">
+        <a routerLink="/dashboard/gestion-prestamos" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-collection"></i> Gestión de Prestamos de Libros
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'MAESTRO' || rolUsuario === 'ESTUDIANTE'">
+        <a routerLink="/dashboard/catalogo-libros" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-search"></i> Buscar Libros
+        </a>
+      </li>
     </ul>
 
     <div class="mt-auto">
@@ -104,3 +119,4 @@
     <router-outlet></router-outlet>
   </main>
 </div>
+

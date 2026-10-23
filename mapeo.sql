@@ -152,4 +152,54 @@ CREATE TABLE nota (
     UNIQUE (id_actividad, id_estudiante)
 );
 
+CREATE TABLE libro (
+    id_libro INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) UNIQUE NOT NULL,
+    titulo VARCHAR(200) NOT NULL,
+    autor VARCHAR(150) NOT NULL,
+    editorial VARCHAR(100) NULL,
+    copias_totales INT NOT NULL,
+    copias_disponibles INT NOT NULL,
+    imagen LONGTEXT NULL, 
+    estado ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO' 
+);
+
+CREATE TABLE prestamo (
+    id_prestamo INT AUTO_INCREMENT PRIMARY KEY,
+    id_libro INT NOT NULL,
+    id_estudiante INT NULL, 
+    id_empleado INT NULL,   
+    fecha_solicitud DATE NOT NULL,
+    fecha_prestamo DATE NULL, 
+    fecha_limite DATE NOT NULL,
+    fecha_devolucion DATE NULL,
+    estado ENUM('SOLICITADO', 'ACTIVO', 'DEVUELTO', 'RECHAZADO') NOT NULL,
+    renovaciones INT NOT NULL DEFAULT 0, 
+    multa_generada DECIMAL(10,2) NOT NULL DEFAULT 0.00, 
+    multa_pagada BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (id_libro) REFERENCES libro(id_libro),
+    FOREIGN KEY (id_estudiante) REFERENCES estudiante(id_estudiante),
+    FOREIGN KEY (id_empleado) REFERENCES empleado(id_empleado),
+    CHECK (id_estudiante IS NOT NULL OR id_empleado IS NOT NULL)
+);
+
+
+CREATE TABLE pago (
+    id_pago INT AUTO_INCREMENT PRIMARY KEY,
+    numero_factura VARCHAR(50) UNIQUE NOT NULL,
+    id_estudiante INT NOT NULL,
+    id_ciclo INT NOT NULL,   
+    concepto ENUM('INSCRIPCION', 'COLEGIATURA', 'EXTRACURRICULAR', 'MULTA_BIBLIOTECA') NOT NULL,
+    mes_colegiatura INT NULL,  
+    descripcion VARCHAR(255) NULL, 
+    monto DECIMAL(10,2) NOT NULL,
+    fecha_pago DATE NOT NULL,
+    estado ENUM('ACTIVO', 'ANULADO') NOT NULL DEFAULT 'ACTIVO',
+    motivo_anulacion VARCHAR(255) NULL,
+    id_prestamo INT NULL, 
+    FOREIGN KEY (id_estudiante) REFERENCES estudiante(id_estudiante),
+    FOREIGN KEY (id_ciclo) REFERENCES ciclo_lectivo(id_ciclo),
+    FOREIGN KEY (id_prestamo) REFERENCES prestamo(id_prestamo)
+);
+
 

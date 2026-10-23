@@ -1,0 +1,147 @@
+<div class="row g-4 position-relative">
+  
+  <!-- PANEL IZQUIERDO: Listado de Préstamos -->
+  <div [ngClass]="prestamoSeleccionado ? 'col-md-8' : 'col-md-12'">
+    <div class="glass-panel p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="text-white fw-light tracking-wide mb-0">
+          <i class="bi bi-journal-bookmark me-2"></i> Control de Préstamos
+        </h5>
+        
+        <!-- Filtros Rápidos -->
+        <div class="btn-group" role="group">
+          <button class="btn btn-sm rounded-start-pill" [ngClass]="filtroEstado === '' ? 'btn-info text-dark fw-bold' : 'btn-outline-info text-white'" (click)="filtrarPorEstado('')">Todos</button>
+          <button class="btn btn-sm" [ngClass]="filtroEstado === 'SOLICITADO' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-white'" (click)="filtrarPorEstado('SOLICITADO')">Solicitudes</button>
+          <button class="btn btn-sm" [ngClass]="filtroEstado === 'ACTIVO' ? 'btn-success text-dark fw-bold' : 'btn-outline-success text-white'" (click)="filtrarPorEstado('ACTIVO')">Activos</button>
+          <button class="btn btn-sm rounded-end-pill" [ngClass]="filtroEstado === 'DEVUELTO' ? 'btn-secondary text-white fw-bold' : 'btn-outline-secondary text-white'" (click)="filtrarPorEstado('DEVUELTO')">Devueltos</button>
+        </div>
+      </div>
+
+      <div *ngIf="cargando" class="text-center py-4">
+        <div class="spinner-border text-info" role="status"></div>
+      </div>
+
+      <div class="table-responsive" *ngIf="!cargando">
+        <table class="table glass-table text-white align-middle">
+          <thead>
+            <tr>
+              <th>Libro</th>
+              <th>Solicitante</th>
+              <th>Fechas</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="listaPrestamos.length === 0">
+              <td colspan="5" class="text-center text-white-50 py-4">No se encontraron registros.</td>
+            </tr>
+            <tr *ngFor="let p of listaPrestamos">
+              <td>
+                <div class="small text-info fw-bold mb-1">{{ p.codigoLibro }}</div>
+                <div class="fw-bold">{{ p.tituloLibro }}</div>
+              </td>
+              <td>
+                <div>{{ p.nombreSolicitante }}</div>
+                <span class="badge bg-dark border border-secondary text-white-50">{{ p.tipoSolicitante }}</span>
+              </td>
+              <td class="small">
+                <div *ngIf="p.fechaSolicitud"><span class="text-white-50">Solicitado:</span> {{ p.fechaSolicitud }}</div>
+                <div *ngIf="p.fechaLimite" [ngClass]="{'text-warning fw-bold': p.estado === 'ACTIVO'}">
+                  <span class="text-white-50">Límite:</span> {{ p.fechaLimite }}
+                </div>
+              </td>
+              <td>
+                <span class="badge" 
+                  [ngClass]="{
+                    'bg-warning text-dark': p.estado === 'SOLICITADO', 
+                    'bg-success': p.estado === 'ACTIVO', 
+                    'bg-secondary': p.estado === 'DEVUELTO', 
+                    'bg-danger': p.estado === 'RECHAZADO'
+                  }">
+                  {{ p.estado }}
+                </span>
+                <div *ngIf="p.renovaciones > 0" class="small text-info mt-1">{{ p.renovaciones }} Ren.</div>
+              </td>
+              <td class="text-center">
+                <!-- Botones si está SOLICITADO -->
+                <button *ngIf="p.estado === 'SOLICITADO'" class="btn btn-sm btn-success me-1 rounded" (click)="abrirPanel(p, 'APROBAR')" title="Entregar Libro">
+                  <i class="bi bi-box-arrow-right"></i>
+                </button>
+                <button *ngIf="p.estado === 'SOLICITADO'" class="btn btn-sm btn-outline-danger rounded" (click)="rechazarSolicitud(p.idPrestamo)" title="Rechazar">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+
+                <!-- Botones si está ACTIVO -->
+                <button *ngIf="p.estado === 'ACTIVO'" class="btn btn-sm btn-primary me-1 rounded" (click)="abrirPanel(p, 'DEVOLVER')" title="Recibir Libro">
+                  <i class="bi bi-box-arrow-in-left"></i>
+                </button>
+                <button *ngIf="p.estado === 'ACTIVO' && p.renovaciones < 2" class="btn btn-sm btn-info rounded" (click)="abrirPanel(p, 'RENOVAR')" title="Renovar Plazo">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
+          <span class="text-white-50 small">Página {{ paginaActual }}</span>
+          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cambiarPagina(1)" [disabled]="listaPrestamos.length < limitePorPagina">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: Procesar Acción -->
+  <div class="col-md-4" *ngIf="prestamoSeleccionado">
+    <div class="glass-panel p-4 h-100 border-start border-info" style="border-width: 4px !important;">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+        <h5 class="text-white m-0">
+          <i class="bi" 
+            [ngClass]="{'bi-check2-square text-success': accionActual === 'APROBAR', 'bi-arrow-return-left text-primary': accionActual === 'DEVOLVER', 'bi-calendar-plus text-info': accionActual === 'RENOVAR'}"></i>
+          {{ accionActual === 'APROBAR' ? ' Entregar Libro' : (accionActual === 'DEVOLVER' ? ' Recibir Libro' : ' Renovar Plazo') }}
+        </h5>
+        <button class="btn-close btn-close-white" (click)="cerrarPanel()"></button>
+      </div>
+
+      <div class="mb-4 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
+        <div class="small text-info fw-bold">{{ prestamoSeleccionado.codigoLibro }}</div>
+        <div class="fw-bold text-white mb-2">{{ prestamoSeleccionado.tituloLibro }}</div>
+        <hr class="border-secondary my-2">
+        <div class="small text-white-50">Solicitante:</div>
+        <div class="text-white">{{ prestamoSeleccionado.nombreSolicitante }} ({{ prestamoSeleccionado.tipoSolicitante }})</div>
+      </div>
+
+      <!-- Input para APROBAR o RENOVAR (Fecha) -->
+      <div *ngIf="accionActual === 'APROBAR' || accionActual === 'RENOVAR'" class="mb-4">
+        <label class="form-label text-white-50 small">Establecer Fecha Límite</label>
+        <input type="date" class="form-control glass-input text-white fs-5" [(ngModel)]="inputFecha">
+        <div class="form-text text-white-50 mt-2">
+          {{ accionActual === 'APROBAR' ? 'El sistema sugiere 5 días hábiles.' : 'El sistema sugiere 3 días extra.' }}
+        </div>
+      </div>
+
+      <!-- Input para DEVOLVER (Multa) -->
+      <div *ngIf="accionActual === 'DEVOLVER'" class="mb-4">
+        <label class="form-label text-white-50 small">Multa por Retraso (Q)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-secondary text-white-50">Q</span>
+          <input type="number" class="form-control glass-input text-white fs-4 fw-bold" [(ngModel)]="inputMulta" min="0" step="1.00">
+        </div>
+        <div class="form-text text-white-50 mt-2">
+          Si el libro se entregó a tiempo o intacto, deja el valor en 0.
+        </div>
+      </div>
+
+      <div class="d-grid mt-auto">
+        <button class="btn btn-lg shadow-sm text-white fw-bold" 
+          [ngClass]="{'btn-success': accionActual === 'APROBAR', 'btn-primary': accionActual === 'DEVOLVER', 'btn-info text-dark': accionActual === 'RENOVAR'}"
+          (click)="ejecutarAccion()">
+          Confirmar Acción
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

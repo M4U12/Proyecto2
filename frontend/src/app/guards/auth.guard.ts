@@ -15,7 +15,20 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   // verificar el rol solo si la ruta exige un rol específico
   const rolRequerido = route.data['role'];
+  const rolesRequeridos = route.data['roles'];
 
+  //para multiples roles
+  if (rolesRequeridos && Array.isArray(rolesRequeridos)) {
+    if (rolesRequeridos.includes(rolUsuario)) {
+      return true;
+    } else {
+      alert('Acceso Denegado: No tienes permisos para este módulo.');
+      router.navigate(['/dashboard']); 
+      return false;
+    }
+  }
+
+  //para rol solitario
   if (rolRequerido) {
     if (rolUsuario === rolRequerido) {
       return true;

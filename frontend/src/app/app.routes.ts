@@ -20,6 +20,9 @@ import { Notas } from './components/notas/notas';
 import { CursosEstudiante } from './components/cursos-estudiante/cursos-estudiante';
 import { Boleta } from './components/boleta/boleta';
 import { AdminEstudiantes } from './components/admin-estudiantes/admin-estudiantes';
+import { GestionLibros } from './components/gestion-libros/gestion-libros';
+import { GestionPrestamos } from './components/gestion-prestamos/gestion-prestamos';
+import { CatalogoLibros } from './components/catalogo-libros/catalogo-libros';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -57,7 +60,7 @@ export const routes: Routes = [
         path: 'niveles',
         component: Niveles,
         canActivate: [roleGuard],
-        data: { role: 'ADMINISTRADOR'}
+        data: { role: 'SUPER_ADMIN'}
       },
       {
         path: 'grados',
@@ -136,7 +139,24 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { role: 'ADMINISTRADOR' } 
       },
-      
+      { 
+        path: 'gestion-libros', 
+        component: GestionLibros,
+        canActivate: [roleGuard],
+        data: { role: 'BIBLIOTECARIO' } 
+      },
+      { 
+        path: 'gestion-prestamos', 
+        component: GestionPrestamos,
+        canActivate: [roleGuard],
+        data: { role: 'BIBLIOTECARIO' } 
+      },
+      { 
+        path: 'catalogo-libros', 
+        component: CatalogoLibros,
+        canActivate: [roleGuard],
+        data: { roles: ['ESTUDIANTE', 'MAESTRO'] } 
+      },
     ]
   },
   { path: '**', redirectTo: '' }
