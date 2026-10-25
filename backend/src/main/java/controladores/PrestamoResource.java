@@ -3,11 +3,12 @@ package controladores;
 import dao.PrestamoDAO;
 import dto.GestionPrestamoDTO;
 import dto.PrestamoRequestDTO;
+import dto.PrestamoResponseDTO;
 import excepciones.BDException;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import seguridad.Secured;
 
 @Path("/prestamos")
@@ -104,7 +105,7 @@ public class PrestamoResource {
             return Response.status(Response.Status.CONFLICT).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listarPrestamos(
@@ -115,6 +116,45 @@ public class PrestamoResource {
             @QueryParam("limite") @DefaultValue("10") int limite) {
         try {
             return Response.ok(prestamoDAO.listarPrestamos(idEstudiante, idEmpleado, estado, pagina, limite)).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @GET
+    @Path("/multas/pendientes")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerMultasPendientes() {
+        try {
+            List<PrestamoResponseDTO> multas = prestamoDAO.listarMultasPendientes();
+            return Response.ok(multas).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    @PUT
+    @Path("/{id}/pagar-multa")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response registrarPagoMulta(@PathParam("id") int idPrestamo, dto.PagoMultaRequestDTO request) {
+
+        if (request.getNumeroFactura() == null || request.getNumeroFactura().trim().isEmpty() || request.getIdCiclo() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"El número de factura y el ciclo escolar son obligatorios.\"}").build();
+        }
+
+        try {
+            boolean pagado = prestamoDAO.pagarMulta(idPrestamo, request.getNumeroFactura(), request.getIdCiclo());
+
+            if (pagado) {
+                return Response.ok("{\"mensaje\":\"Pago registrado exitosamente.\"}").build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"No se encontró el préstamo o ya estaba pagado.\"}").build();
+            }
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();

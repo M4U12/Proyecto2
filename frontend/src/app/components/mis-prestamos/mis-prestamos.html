@@ -1,0 +1,87 @@
+<div class="glass-panel p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-white fw-light tracking-wide mb-0">
+      <i class="bi bi-clock-history me-2"></i> Mi Historial de Préstamos
+    </h4>
+    
+    <!-- Filtros Rápidos -->
+    <div class="btn-group shadow-sm" role="group">
+      <button class="btn btn-sm rounded-start-pill" [ngClass]="filtroEstado === '' ? 'btn-info text-dark fw-bold' : 'btn-outline-info text-white'" (click)="filtrarPorEstado('')">Todos</button>
+      <button class="btn btn-sm" [ngClass]="filtroEstado === 'ACTIVO' ? 'btn-success text-dark fw-bold' : 'btn-outline-success text-white'" (click)="filtrarPorEstado('ACTIVO')">Activos</button>
+      <button class="btn btn-sm rounded-end-pill" [ngClass]="filtroEstado === 'DEVUELTO' ? 'btn-secondary text-white fw-bold' : 'btn-outline-secondary text-white'" (click)="filtrarPorEstado('DEVUELTO')">Devueltos</button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-info" role="status"></div>
+  </div>
+
+  <div class="table-responsive" *ngIf="!cargando">
+    <table class="table glass-table text-white align-middle">
+      <thead>
+        <tr>
+          <th>Libro</th>
+          <th>Estado</th>
+          <th>Fechas Clave</th>
+          <th>Renovaciones</th>
+          <th class="text-end">Multa (Q)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listaPrestamos.length === 0">
+          <td colspan="5" class="text-center text-white-50 py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            Aún no tienes préstamos registrados en tu historial.
+          </td>
+        </tr>
+        <tr *ngFor="let p of listaPrestamos">
+          <td>
+            <div class="small text-info fw-bold mb-1">{{ p.codigoLibro }}</div>
+            <div class="fw-bold">{{ p.tituloLibro }}</div>
+          </td>
+          <td>
+            <span class="badge" 
+              [ngClass]="{
+                'bg-warning text-dark': p.estado === 'SOLICITADO', 
+                'bg-success': p.estado === 'ACTIVO', 
+                'bg-secondary': p.estado === 'DEVUELTO', 
+                'bg-danger': p.estado === 'RECHAZADO'
+              }">
+              {{ p.estado }}
+            </span>
+          </td>
+          <td class="small">
+            <div *ngIf="p.estado === 'SOLICITADO'"><span class="text-white-50">Solicitado el:</span> {{ p.fechaSolicitud }}</div>
+            <div *ngIf="p.estado === 'ACTIVO'" class="text-warning fw-bold"><span class="text-white-50 fw-normal">Devolver antes del:</span> {{ p.fechaLimite }}</div>
+            <div *ngIf="p.estado === 'DEVUELTO'"><span class="text-white-50">Entregado el:</span> {{ p.fechaDevolucion }}</div>
+          </td>
+          <td>
+            <span *ngIf="p.renovaciones > 0" class="badge border border-info text-info">{{ p.renovaciones }} / 2</span>
+            <span *ngIf="p.renovaciones === 0" class="text-white-50 small">Ninguna</span>
+          </td>
+          <td class="text-end fw-bold">
+            <!-- Si no hay multa -->
+            <span *ngIf="p.multaGenerada === 0" class="text-white-50">Q0.00</span>
+            
+            <!-- Si hay multa y ya está pagada -->
+            <span *ngIf="p.multaGenerada > 0 && p.multaPagada" class="text-success">
+              Q{{ p.multaGenerada | number:'1.2-2' }} <i class="bi bi-check-circle" title="Pagada"></i>
+            </span>
+            
+            <!-- Si hay multa y no está pagada -->
+            <span *ngIf="p.multaGenerada > 0 && !p.multaPagada" class="text-danger">
+              Q{{ p.multaGenerada | number:'1.2-2' }} <i class="bi bi-exclamation-circle" title="Pendiente de pago"></i>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+      <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">Anterior</button>
+      <span class="text-white-50 small">Página {{ paginaActual }}</span>
+      <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="cambiarPagina(1)" [disabled]="listaPrestamos.length < limitePorPagina">Siguiente</button>
+    </div>
+  </div>
+</div>

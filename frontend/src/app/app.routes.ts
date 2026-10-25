@@ -23,6 +23,8 @@ import { AdminEstudiantes } from './components/admin-estudiantes/admin-estudiant
 import { GestionLibros } from './components/gestion-libros/gestion-libros';
 import { GestionPrestamos } from './components/gestion-prestamos/gestion-prestamos';
 import { CatalogoLibros } from './components/catalogo-libros/catalogo-libros';
+import { MisPrestamos } from './components/mis-prestamos/mis-prestamos';
+import { Tesoreria } from './components/tesoreria/tesoreria';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -156,6 +158,18 @@ export const routes: Routes = [
         component: CatalogoLibros,
         canActivate: [roleGuard],
         data: { roles: ['ESTUDIANTE', 'MAESTRO'] } 
+      },
+      { 
+        path: 'mis-prestamos', 
+        component: MisPrestamos,
+        canActivate: [roleGuard],
+        data: { roles: ['ESTUDIANTE', 'MAESTRO'] } 
+      },
+      { 
+        path: 'tesoreria', 
+        component: Tesoreria,
+        canActivate: [roleGuard],
+        data: { role: 'SECRETARIA'}
       },
     ]
   },

@@ -8,6 +8,7 @@ public class GradoRequestDTO {
     private int idNivel;
     private Integer idCarrera;
     private List<SeccionDTO> secciones;
+    private int idCiclo;
 
     public String getNombre() {
         return nombre;
@@ -40,4 +41,14 @@ public class GradoRequestDTO {
     public void setSecciones(List<SeccionDTO> secciones) {
         this.secciones = secciones;
     }
+
+    public int getIdCiclo() {
+        return idCiclo;
+    }
+
+    public void setIdCiclo(int idCiclo) {
+        this.idCiclo = idCiclo;
+    }
+    
+    
 }

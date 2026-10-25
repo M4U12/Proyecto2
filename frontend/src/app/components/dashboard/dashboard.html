@@ -105,6 +105,16 @@
           <i class="bi bi-search"></i> Buscar Libros
         </a>
       </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'MAESTRO' || rolUsuario === 'ESTUDIANTE'">
+        <a routerLink="/dashboard/mis-prestamos" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-clock-history"></i> Mis Préstamos
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'SECRETARIA'">
+        <a routerLink="/dashboard/tesoreria" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-bank"></i> Tesoreria
+        </a>
+      </li>
     </ul>
 
     <div class="mt-auto">

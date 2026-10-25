@@ -13,7 +13,7 @@ public class GradoDAO {
 
     public boolean registrarGradoConSecciones(Grado grado, List<Seccion> secciones) throws BDException {
         String queryGrado = "INSERT INTO grado (nombre, id_nivel, id_carrera) VALUES (?, ?, ?)";
-        String querySeccion = "INSERT INTO seccion (identificador, cupo, id_grado) VALUES (?, ?, ?)";
+        String querySeccion = "INSERT INTO seccion (identificador, cupo, id_grado, id_ciclo) VALUES (?, ?, ?, ?)";
 
         Connection connection = null;
 
@@ -45,6 +45,7 @@ public class GradoDAO {
                             psSeccion.setString(1, seccion.getIdentificador());
                             psSeccion.setInt(2, seccion.getCupo());
                             psSeccion.setInt(3, idGradoGenerado);
+                            psSeccion.setInt(4, seccion.getIdCiclo());
                             psSeccion.addBatch();
                         }
                         psSeccion.executeBatch();
@@ -101,8 +102,11 @@ public class GradoDAO {
 
     public List<Grado> listarConSeccionesPorCiclo(int idCiclo) throws BDException {
         List<Grado> listaGrados = new ArrayList<>();
-        String queryGrado = "SELECT DISTINCT g.* FROM grado g INNER JOIN curriculo c ON g.id_grado = c.id_grado WHERE c.id_ciclo = ?";
-        String querySeccion = "SELECT * FROM seccion WHERE id_grado = ?";
+        String queryGrado = "SELECT DISTINCT g.* FROM grado g " +
+                    "INNER JOIN curriculo c ON g.id_grado = c.id_grado " +
+                    "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel " +
+                    "WHERE c.id_ciclo = ? AND n.estado = true";
+        String querySeccion = "SELECT * FROM seccion WHERE id_grado = ? AND id_ciclo = ?";
 
         try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
 
@@ -124,6 +128,7 @@ public class GradoDAO {
                     List<Seccion> listaSecciones = new ArrayList<>();
                     try (PreparedStatement psSeccion = connection.prepareStatement(querySeccion)) {
                         psSeccion.setInt(1, grado.getIdGrado());
+                        psSeccion.setInt(2, idCiclo);
                         try (ResultSet rsSeccion = psSeccion.executeQuery()) {
                             while (rsSeccion.next()) {
                                 Seccion seccion = new Seccion(
@@ -178,7 +183,10 @@ public class GradoDAO {
 
     public List<Grado> listarPaginado(int pagina, int tamanoPagina) throws BDException {
         List<Grado> listaGrados = new ArrayList<>();
-        String queryGrado = "SELECT * FROM grado LIMIT ? OFFSET ?";
+        String queryGrado = "SELECT g.* FROM grado g " +
+                    "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel " +
+                    "WHERE n.estado = true " + 
+                    "ORDER BY g.id_grado ASC LIMIT ? OFFSET ?";
         String querySeccion = "SELECT * FROM seccion WHERE id_grado = ? ORDER BY identificador ASC";
 
         int offset = (pagina - 1) * tamanoPagina;

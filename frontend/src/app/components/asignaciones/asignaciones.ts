@@ -5,7 +5,6 @@ import { AsignacionService } from '../../services/asignacion.service';
 import { EmpleadoService } from '../../services/empleado.service';
 import { CicloService } from '../../services/ciclo.service';
 import { GradoService } from '../../services/grado.service';
-import { SeccionService } from '../../services/seccion.service';
 import { CursoService } from '../../services/curso.service';
 
 @Component({
@@ -27,13 +26,15 @@ export class Asignaciones implements OnInit {
   maestroSeleccionado: any = null;
   cicloSeleccionadoId: number | null = null;
 
+  asignacionAReasignar: any = null;
+  idNuevoMaestroTraspaso: string = '';
+
   constructor(
     private fb: FormBuilder,
     private asignacionService: AsignacionService,
     private empleadoService: EmpleadoService,
     private cicloService: CicloService,
     private gradoService: GradoService,
-    private seccionService: SeccionService,
     private cursoService: CursoService,
     private cdr: ChangeDetectorRef
   ) {
@@ -49,37 +50,17 @@ export class Asignaciones implements OnInit {
   }
 
   cargarCatalogos() {
-    // Ciclos activos
     this.cicloService.getCiclos(1, 100).subscribe(res => {
       this.listaCiclos = res.filter((c: any) => c.estado === 'ABIERTO' || c.estado === true);
       this.cdr.detectChanges();
     });
 
-    // filtra solo a los maestros
     this.empleadoService.getEmpleados(1, 100).subscribe(res => {
       this.listaMaestros = res.filter((e: any) => e.rolSistema === 'MAESTRO');
       this.cdr.detectChanges();
     });
 
-    // Grados
-    this.gradoService.getGrados(1, 100).subscribe(res => {
-      this.listaGrados = res;
-      this.cdr.detectChanges();
-    });
-
-    // Cursos
     this.cursoService.getCursos(1, 100).subscribe(res => this.listaCursos = res);
-  }
-
-  cargarSecciones(event: any) {
-    const idGrado = event.target.value;
-    this.seccionService.getSeccionesPorGrado(idGrado).subscribe({
-      next: (res) => {
-        this.listaSecciones = res;
-        this.asignacionForm.get('idSeccion')?.setValue('');
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   seleccionarContexto(event: any, tipo: 'maestro' | 'ciclo') {
@@ -88,11 +69,36 @@ export class Asignaciones implements OnInit {
       this.maestroSeleccionado = this.listaMaestros.find(m => m.idEmpleado.toString() === idStr);
     } else {
       this.cicloSeleccionadoId = Number(event.target.value);
+      
+      // Cargar los grados y sus secciones específicos del currículo de este ciclo
+      this.gradoService.getGradosPorCiclo(this.cicloSeleccionadoId).subscribe({
+        next: (res) => {
+          this.listaGrados = res;
+          this.listaSecciones = [];
+          this.asignacionForm.patchValue({ idGrado: '', idSeccion: '' });
+          this.cdr.detectChanges();
+        }
+      });
     }
 
     if (this.maestroSeleccionado && this.cicloSeleccionadoId) {
       this.cargarAsignaciones();
     }
+  }
+
+  // Extraer secciones desde el arreglo en memoria 
+  cargarSecciones(event: any) {
+    const idGrado = Number(event.target.value);
+    const gradoEncontrado = this.listaGrados.find(g => g.idGrado === idGrado);
+    
+    if (gradoEncontrado && gradoEncontrado.secciones) {
+      this.listaSecciones = gradoEncontrado.secciones;
+    } else {
+      this.listaSecciones = [];
+    }
+    
+    this.asignacionForm.get('idSeccion')?.setValue('');
+    this.cdr.detectChanges();
   }
 
   cargarAsignaciones() {
@@ -122,7 +128,7 @@ export class Asignaciones implements OnInit {
     this.asignacionService.registrarAsignacion(request).subscribe({
       next: () => {
         alert('Curso asignado al maestro exitosamente.');
-        this.asignacionForm.reset();
+        this.asignacionForm.patchValue({ idGrado: '', idSeccion: '', idCurso: '' });
         this.listaSecciones = [];
         this.cargarAsignaciones(); 
       },
@@ -145,14 +151,11 @@ export class Asignaciones implements OnInit {
     }
   }
 
-
-
-  asignacionAReasignar: any = null;
-  idNuevoMaestroTraspaso: string = '';
   abrirModalReasignacion(asig: any) {
     this.asignacionAReasignar = asig;
     this.idNuevoMaestroTraspaso = '';
   }
+
   efectuarTraspaso() {
     if (!this.idNuevoMaestroTraspaso) {
       alert('Selecciona un nuevo maestro.');
@@ -169,11 +172,11 @@ export class Asignaciones implements OnInit {
           this.asignacionAReasignar = null;
           this.asignacionForm.reset();
           this.listaSecciones = [];
-          
           this.cdr.detectChanges();
         },
-        error: (err) => {alert('Error: ' + (err.error?.error || 'No se pudo hacer el traspaso.'))
-        this.cdr.detectChanges();
+        error: (err) => {
+          alert('Error: ' + (err.error?.error || 'No se pudo hacer el traspaso.'));
+          this.cdr.detectChanges();
         }
       });
   }

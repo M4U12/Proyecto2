@@ -5,6 +5,7 @@ public class NuevaSeccionDTO {
     private String identificador;
     private int cupo;
     private int idGrado;
+    private int idCiclo;
 
     public String getIdentificador() {
         return identificador;
@@ -29,4 +30,14 @@ public class NuevaSeccionDTO {
     public void setIdGrado(int idGrado) {
         this.idGrado = idGrado;
     }
+
+    public int getIdCiclo() {
+        return idCiclo;
+    }
+
+    public void setIdCiclo(int idCiclo) {
+        this.idCiclo = idCiclo;
+    }
+    
+    
 }

@@ -5,6 +5,7 @@ public class Seccion {
     private String identificador;
     private int cupo;
     private int idGrado;
+    private int idCiclo;
 
     public Seccion() {
     }
@@ -47,4 +48,13 @@ public class Seccion {
     public void setIdGrado(int idGrado) {
         this.idGrado = idGrado;
     }
+
+    public int getIdCiclo() {
+        return idCiclo;
+    }
+
+    public void setIdCiclo(int idCiclo) {
+        this.idCiclo = idCiclo;
+    }
+    
 }

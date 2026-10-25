@@ -42,6 +42,7 @@ export class Inscripciones implements OnInit {
     });
 
     this.reasignacionForm = this.fb.group({
+      idCicloDestino: ['', Validators.required], 
       idNuevoGrado: ['', Validators.required],
       idNuevaSeccion: ['', Validators.required]
     });
@@ -53,43 +54,60 @@ export class Inscripciones implements OnInit {
 
   cargarCatalogos() {
     this.cicloService.getCiclos(1, 100).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.listaCiclos = res.filter((c: any) => c.estado === 'ABIERTO');
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar ciclos:', err)
+      error: (err: any) => console.error('Error al cargar ciclos:', err)
     });
 
     this.gradoService.getGrados(1, 100).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.listaGrados = res;
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar grados:', err)
+      error: (err: any) => console.error('Error al cargar grados:', err)
     });
   }
 
   cargarSeccionesPorGrado(event: any) {
-    const idGrado = event.target.value;
-    this.seccionService.getSeccionesPorGrado(idGrado).subscribe({
-      next: (res) => {
+    const idGrado = Number(event.target.value);
+    const idCiclo = Number(this.inscripcionForm.value.idCiclo);
+
+    if (!idCiclo) {
+      alert('Por favor selecciona un ciclo escolar primero.');
+      this.inscripcionForm.get('idGrado')?.setValue('');
+      return;
+    }
+
+    this.seccionService.getSeccionesPorGradoYCiclo(idGrado, idCiclo).subscribe({
+      next: (res: any) => {
         this.listaSecciones = res;
         this.inscripcionForm.get('idSeccion')?.setValue(''); 
         this.reasignacionForm.get('idNuevaSeccion')?.setValue('');
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar secciones:', err)
+      error: (err: any) => console.error('Error al cargar secciones:', err)
     });
   }
 
   cargarSeccionesCorreccion(event: any) {
-    const idGrado = event.target.value;
-    this.seccionService.getSeccionesPorGrado(idGrado).subscribe({
-      next: (res) => {
+    const idGrado = Number(event.target.value);
+    const idCiclo = Number(this.reasignacionForm.value.idCicloDestino); 
+
+    if (!idCiclo) {
+      alert('Por favor selecciona el Ciclo Escolar primero.');
+      this.reasignacionForm.get('idNuevoGrado')?.setValue('');
+      return;
+    }
+
+    this.seccionService.getSeccionesPorGradoYCiclo(idGrado, idCiclo).subscribe({
+      next: (res: any) => {
         this.listaSecciones = res;
         this.reasignacionForm.get('idNuevaSeccion')?.setValue(''); 
         this.cdr.detectChanges();
-      }
+      },
+      error: (err: any) => console.error('Error al cargar secciones:', err)
     });
   }
 
@@ -107,7 +125,7 @@ export class Inscripciones implements OnInit {
         this.busquedaSinResultados = datos.length === 0;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         alert('Error: ' + (err.error?.error || err.message));
         this.cdr.detectChanges();
       }
@@ -130,22 +148,24 @@ export class Inscripciones implements OnInit {
     this.limpiarPantalla();
 
     this.estudianteService.obtenerExpediente(this.codigoBusqueda.trim()).subscribe({
-      next: (datos) => {
+      next: (datos: any) => {
         this.estudianteSeleccionado = datos;     
         this.modoReasignacion = this.estudianteSeleccionado.nombreGradoActual !== 'Sin asignación';
         
         if (this.modoReasignacion && this.estudianteSeleccionado.idGradoActual) {
-          this.seccionService.getSeccionesPorGrado(this.estudianteSeleccionado.idGradoActual).subscribe({
-            next: (res) => {
+          const idCiclo = this.estudianteSeleccionado.idCicloActivo;
+          this.seccionService.getSeccionesPorGradoYCiclo(this.estudianteSeleccionado.idGradoActual, idCiclo).subscribe({
+            next: (res: any) => {
               this.listaSecciones = res;
               this.cdr.detectChanges();
-            }
+            },
+            error: (err: any) => console.error('Error al cargar secciones:', err)
           });
         }
         
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         alert('Estudiante no encontrado: ' + (err.error?.error || 'Verifica el código.'));
         this.cdr.detectChanges();
       }
@@ -181,7 +201,7 @@ export class Inscripciones implements OnInit {
         alert('¡Estudiante inscrito exitosamente!');
         this.buscarExpediente(); 
       },
-      error: (err) => {
+      error: (err: any) => {
         alert('Error: ' + (err.error?.error || 'No se pudo inscribir.'));
         this.cdr.detectChanges();
       }
@@ -190,23 +210,55 @@ export class Inscripciones implements OnInit {
 
   corregirInscripcion() {
     if (this.reasignacionForm.invalid) {
-      alert('Selecciona el nuevo grado y sección.');
+      alert('Selecciona el nuevo ciclo, grado y sección.');
       return;
     }
 
     const idNuevoGrado = this.reasignacionForm.value.idNuevoGrado;
     const idNuevaSeccion = this.reasignacionForm.value.idNuevaSeccion;
-    const idCiclo = this.estudianteSeleccionado.idCicloActivo;
+    const idCicloDestino = Number(this.reasignacionForm.value.idCicloDestino);
+    
+    // Se obtiene el ciclo en el que el estudiante está inscrito actualmente
+    const idCicloActual = Number(this.estudianteSeleccionado.idCicloActivo);
 
-    this.inscripcionService.corregirInscripcion(this.estudianteSeleccionado.idEstudiante, idCiclo, idNuevoGrado, idNuevaSeccion).subscribe({
-      next: () => {
-        alert('Inscripción corregida exitosamente.');
-        this.buscarExpediente(); 
-      },
-      error: (err) => {
-        alert('Error: ' + (err.error?.error || 'No se pudo corregir la matrícula.'));
-        this.cdr.detectChanges();
-      }
-    });
+    // Para saber si ss una reinscripción para un año nuevo o una corrección del año actual
+    if (idCicloDestino !== idCicloActual) {
+      // Es reinscripción, por lo tanto se usa el método de inscripción
+      const requestPayload = {
+        idEstudiante: this.estudianteSeleccionado.idEstudiante,
+        idGrado: idNuevoGrado,
+        idSeccion: idNuevaSeccion,
+        idCiclo: idCicloDestino
+      };
+
+      this.inscripcionService.inscribirEstudiante(requestPayload).subscribe({
+        next: () => {
+          alert('¡Estudiante reinscrito exitosamente para el nuevo ciclo!');
+          this.buscarExpediente();
+        },
+        error: (err: any) => {
+          alert('Error al reinscribir: ' + (err.error?.error || 'Verifique los datos.'));
+          this.cdr.detectChanges();
+        }
+      });
+      
+    } else {
+      // Corrección del mismo año
+      this.inscripcionService.corregirInscripcion(
+        this.estudianteSeleccionado.idEstudiante, 
+        idCicloActual, 
+        idNuevoGrado, 
+        idNuevaSeccion
+      ).subscribe({
+        next: () => {
+          alert('Inscripción corregida exitosamente.');
+          this.buscarExpediente();
+        },
+        error: (err: any) => {
+          alert('Error al corregir: ' + (err.error?.error || 'No se pudo actualizar.'));
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 }

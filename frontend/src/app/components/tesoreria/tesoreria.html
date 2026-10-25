@@ -1,0 +1,244 @@
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-wallet2 me-2 text-success"></i> Tesorería y Caja
+  </h4>
+
+  <!-- MENÚ DE PESTAÑAS -->
+  <ul class="nav nav-tabs border-secondary mb-4">
+    <li class="nav-item">
+      <a class="nav-link text-white" 
+         [class.active]="pestanaActiva === 'cobros'" 
+         [class.bg-dark]="pestanaActiva === 'cobros'" 
+         [class.border-secondary]="pestanaActiva === 'cobros'"
+         [class.border-bottom-0]="pestanaActiva === 'cobros'"
+         (click)="cambiarPestana('cobros')" style="cursor: pointer;">
+        <i class="bi bi-mortarboard me-1"></i> Cobros Académicos
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white" 
+         [class.active]="pestanaActiva === 'multas'" 
+         [class.bg-dark]="pestanaActiva === 'multas'" 
+         [class.border-secondary]="pestanaActiva === 'multas'"
+         [class.border-bottom-0]="pestanaActiva === 'multas'"
+         (click)="cambiarPestana('multas')" style="cursor: pointer;">
+        <i class="bi bi-journal-x me-1"></i> Multas Biblioteca
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white" 
+         [class.active]="pestanaActiva === 'anulaciones'" 
+         [class.bg-dark]="pestanaActiva === 'anulaciones'" 
+         [class.border-secondary]="pestanaActiva === 'anulaciones'"
+         [class.border-bottom-0]="pestanaActiva === 'anulaciones'"
+         (click)="cambiarPestana('anulaciones')" style="cursor: pointer;">
+        <i class="bi bi-x-octagon me-1 text-danger"></i> Anular Facturas
+      </a>
+    </li>
+  </ul>
+
+  <!-- PESTAÑA 1: COBROS ACADÉMICOS -->
+  <div *ngIf="pestanaActiva === 'cobros'">
+    <div class="row">
+      <!-- Buscador -->
+      <div class="col-md-5">
+        <div class="p-3 bg-dark bg-opacity-25 rounded border border-secondary h-100">
+          <h6 class="text-white fw-light mb-3"><i class="bi bi-person-badge me-2"></i>Buscar Estudiante</h6>
+          
+          <label class="text-white-50 small mb-1">Código Personal</label>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control glass-input text-white" [(ngModel)]="codigoBusquedaCobro" placeholder="Ej. E-2026-001">
+            <button class="btn btn-primary glass-btn" (click)="buscarExpedienteCobro()">Buscar</button>
+          </div>
+
+          <label class="text-white-50 small mb-1">Buscar por Nombre</label>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control glass-input text-white" [(ngModel)]="nombreBusquedaCobro" placeholder="Ej. Juan Pérez">
+            <button class="btn btn-secondary glass-btn text-white" (click)="buscarPorNombreCobro()"><i class="bi bi-search"></i></button>
+          </div>
+
+          <div *ngIf="resultadosNombreCobro.length > 0" class="mt-3 table-responsive">
+            <table class="table glass-table text-white mb-0">
+              <tbody>
+                <tr *ngFor="let res of resultadosNombreCobro">
+                  <td class="small">{{ res.codigoPersonal }}<br>{{ res.nombres }} {{ res.apellidos }}</td>
+                  <td class="text-end align-middle">
+                    <button class="btn btn-sm glass-btn-action text-info py-0 px-2" (click)="seleccionarCodigoCobro(res.codigoPersonal)">
+                      <i class="bi bi-arrow-right-circle"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de Pago -->
+      <div class="col-md-7">
+        <div class="p-4 bg-dark bg-opacity-25 rounded border border-secondary h-100">
+          <div *ngIf="!estudianteCobro" class="d-flex flex-column justify-content-center align-items-center h-100 opacity-50">
+            <i class="bi bi-cash-coin display-1 text-white-50 mb-3"></i>
+            <h5 class="text-white fw-light">Caja de Cobros</h5>
+            <p class="text-white-50 text-center small">Busca un estudiante para registrar su pago.</p>
+          </div>
+
+          <div *ngIf="estudianteCobro">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <h5 class="text-white mb-1">{{ estudianteCobro.nombres }} {{ estudianteCobro.apellidos }}</h5>
+                <span class="badge bg-info text-dark">{{ estudianteCobro.codigoPersonal }}</span>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="limpiarCobro()">Limpiar</button>
+            </div>
+
+            <div class="row g-3">
+              <!-- SELECTOR DE CONCEPTO -->
+              <div class="col-md-6">
+                <label class="text-white-50 small mb-1">Concepto de Cobro</label>
+                <select class="form-select glass-input text-white" [(ngModel)]="conceptoCobro" (change)="alCambiarConcepto()">
+                  <option value="INSCRIPCION" class="text-dark">Inscripción</option>
+                  <option value="COLEGIATURA" class="text-dark">Colegiatura Mensual</option>
+                  <option value="EXTRACURRICULAR" class="text-dark">Actividad Extracurricular</option>
+                </select>
+              </div>
+
+              <!-- SE MUESTRA SOLO SI ES COLEGIATURA -->
+              <div class="col-md-6" *ngIf="conceptoCobro === 'COLEGIATURA'">
+                <label class="text-white-50 small mb-1 text-warning">Mes a Pagar <span class="text-danger">*</span></label>
+                <select class="form-select glass-input text-white border-warning" [(ngModel)]="mesColegiatura">
+                  <option [ngValue]="null" class="text-dark" disabled>Seleccione el mes...</option>
+                  <option *ngFor="let m of listaMeses" [value]="m.id" class="text-dark">{{ m.nombre }}</option>
+                </select>
+              </div>
+
+              <!-- SE MUESTRA SI NO ES COLEGIATURA -->
+              <div class="col-md-6" *ngIf="conceptoCobro !== 'COLEGIATURA'">
+                <label class="text-white-50 small mb-1">Ciclo Escolar Destino</label>
+                <input type="text" class="form-control glass-input text-white bg-secondary bg-opacity-25" [value]="anioCicloActivo" readonly>
+              </div>
+
+              <div class="col-md-6">
+                <label class="text-white-50 small mb-1">Número de Factura <span class="text-danger">*</span></label>
+                <input type="text" class="form-control glass-input text-white border-primary" [(ngModel)]="facturaAcademica" placeholder="Ej. FAC-100">
+              </div>
+              
+              <div class="col-md-6">
+                <label class="text-white-50 small mb-1">Monto a Cobrar (Q) <span class="text-danger">*</span></label>
+                <input type="number" class="form-control glass-input text-white border-primary" [(ngModel)]="montoAcademico" placeholder="0.00" min="1">
+              </div>
+              
+              <div class="col-12">
+                <label class="text-white-50 small mb-1">Descripción / Notas</label>
+                <input type="text" class="form-control glass-input text-white" [(ngModel)]="descripcionAcademica">
+              </div>
+              
+              <div class="col-12 text-end mt-4">
+                <button class="btn btn-success glass-btn rounded-pill px-4 fw-bold" 
+                        (click)="registrarCobro()" 
+                        [disabled]="!facturaAcademica.trim() || !montoAcademico">
+                  <i class="bi bi-check-circle me-1"></i> Confirmar y Generar Pago
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 2: MULTAS DE BIBLIOTECA  -->
+  <div *ngIf="pestanaActiva === 'multas'">
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label class="text-white-50 small mb-1">Buscar Deudor o Libro</label>
+        <div class="input-group">
+          <span class="input-group-text glass-input text-white border-end-0"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control glass-input text-white border-start-0" 
+                 placeholder="Ej. Juan Pérez..." [(ngModel)]="terminoBusqueda" (input)="filtrarMultas()">
+        </div>
+      </div>
+    </div>
+    <div class="table-responsive border border-secondary rounded bg-dark bg-opacity-25 p-3">
+      <table class="table glass-table text-white mb-0">
+        <thead>
+          <tr>
+            <th>ID Préstamo</th>
+            <th>Nombre del Deudor</th>
+            <th>Perfil</th>
+            <th>Libro Retenido / Devuelto</th>
+            <th>Total Multa</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="multasFiltradas.length === 0">
+            <td colspan="6" class="text-center text-white-50 py-4"><i class="bi bi-check2-circle display-4 d-block mb-2 text-success"></i> No hay multas pendientes.</td>
+          </tr>
+          <tr *ngFor="let multa of multasFiltradas" class="align-middle">
+            <td><span class="badge bg-secondary">#{{ multa.idPrestamo }}</span></td>
+            <td class="fw-bold">{{ multa.nombreSolicitante }}</td>
+            <td><span class="badge" [ngClass]="multa.tipoSolicitante === 'ESTUDIANTE' ? 'bg-info text-dark' : 'bg-primary'">{{ multa.tipoSolicitante }}</span></td>
+            <td><div class="small">{{ multa.tituloLibro }}</div><div class="text-white-50" style="font-size: 0.75rem;">Cód: {{ multa.codigoLibro }}</div></td>
+            <td><span class="text-danger fw-bold fs-5">Q{{ multa.multaGenerada | number:'1.2-2' }}</span></td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-success rounded-pill px-3 shadow" data-bs-toggle="modal" data-bs-target="#modalCobroMulta" (click)="prepararPago(multa)">
+                Cobrar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 3: ANULACIÓN DE FACTURAS  -->
+  <div *ngIf="pestanaActiva === 'anulaciones'" class="col-md-6 mx-auto mt-4">
+    <div class="p-4 bg-dark bg-opacity-25 border border-danger border-opacity-50 rounded">
+      <h5 class="text-white mb-3 fw-light"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Reversión de Pagos</h5>
+      <p class="text-white-50 small mb-4">Ingresa el número de factura para anularla en el sistema. Si la factura corresponde a una multa, la deuda se reactivará automáticamente.</p>
+      <div class="mb-3">
+        <label class="text-white-50 small mb-1">Número de Factura / Recibo</label>
+        <input type="text" class="form-control glass-input text-white border-danger" [(ngModel)]="facturaAnular" placeholder="Ej. FAC-2026-001">
+      </div>
+      <div class="mb-4">
+        <label class="text-white-50 small mb-1">Motivo de la Anulación</label>
+        <textarea class="form-control glass-input text-white border-danger" [(ngModel)]="motivoAnulacion" rows="3" placeholder="Ej. Cobro duplicado, error en monto..."></textarea>
+      </div>
+      <div class="text-end">
+        <button class="btn btn-danger glass-btn rounded-pill px-4 fw-bold" (click)="ejecutarAnulacion()" [disabled]="!facturaAnular.trim() || !motivoAnulacion.trim()">
+          <i class="bi bi-trash3 me-1"></i> Anular Factura
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: COBRAR MULTA  -->
+<div class="modal fade" id="modalCobroMulta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-secondary text-white">
+        <h5 class="modal-title fw-light"><i class="bi bi-receipt me-2 text-success"></i>Registrar Pago de Multa</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 text-white">
+        <div *ngIf="multaSeleccionada" class="mb-4 p-3 bg-dark bg-opacity-50 rounded border border-secondary">
+          <p class="mb-1 small text-white-50">Cobrar a:</p>
+          <h6 class="mb-3">{{ multaSeleccionada.nombreSolicitante }} <span class="badge bg-secondary ms-2">{{ multaSeleccionada.tipoSolicitante }}</span></h6>
+          <p class="mb-1 small text-white-50">Monto total a cancelar:</p>
+          <h3 class="text-danger mb-0">Q{{ multaSeleccionada.multaGenerada | number:'1.2-2' }}</h3>
+        </div>
+        <div>
+          <label class="text-white-50 small mb-1">Número de Factura / Recibo <span class="text-danger">*</span></label>
+          <input type="text" class="form-control glass-input text-white" [(ngModel)]="numeroFacturaCobro" placeholder="Ej. FAC-2026-001" required autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success glass-btn rounded-pill px-4 fw-bold" data-bs-dismiss="modal" (click)="registrarPago()" [disabled]="!numeroFacturaCobro.trim()">Confirmar y Guardar Pago</button>
+      </div>
+    </div>
+  </div>
+</div>

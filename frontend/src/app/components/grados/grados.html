@@ -5,14 +5,14 @@
   
   <form [formGroup]="gradoForm" (ngSubmit)="guardarGrado()">
     
-    <!-- DATOS DEL GRADO -->
+    <!-- DATOS DEL GRADO  -->
     <div class="row g-3 mb-4">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="text-white-50 small mb-1">Nombre del Grado</label>
         <input type="text" class="form-control glass-input text-white" formControlName="nombre" placeholder="Ej. Primero, Segundo...">
       </div>
       
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="text-white-50 small mb-1">Nivel Educativo</label>
         <select class="form-select glass-input text-white" formControlName="idNivel">
           <option value="" class="text-dark" disabled selected>Seleccione un nivel...</option>
@@ -22,12 +22,23 @@
         </select>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="text-white-50 small mb-1">Carrera (Solo Diversificado)</label>
         <select class="form-select glass-input text-white" formControlName="idCarrera">
           <option value="" class="text-dark">Ninguna / No aplica</option>
           <option class="text-dark" *ngFor="let carrera of listaCarreras" [value]="carrera.idCarrera">
             {{ carrera.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- SELECCIÓN DEL CICLO INICIAL -->
+      <div class="col-md-3">
+        <label class="text-white-50 small mb-1">Ciclo Escolar Inicial</label>
+        <select class="form-select glass-input text-white" formControlName="idCiclo">
+          <option value="" class="text-dark" disabled selected>Seleccione el ciclo...</option>
+          <option class="text-dark" *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo">
+            {{ ciclo.anio }}
           </option>
         </select>
       </div>
@@ -180,7 +191,7 @@
   </div>
 </div>
 
-<!-- MODAL 2: GESTIONAR SECCIONES   -->
+<!-- MODAL 2: GESTIONAR SECCIONES POR CICLO  -->
 <div class="modal fade" id="modalGestionarSecciones" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content glass-panel border-0">
@@ -194,48 +205,67 @@
       
       <div class="modal-body p-4">
         
-        <!-- Agregar nueva sección -->
-        <form [formGroup]="nuevaSeccionForm" (ngSubmit)="guardarNuevaSeccion()" class="row g-2 align-items-end mb-4 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
-          <div class="col-md-5">
-            <label class="text-white-50 small mb-1">Nueva Sección (ID)</label>
-            <input type="text" class="form-control glass-input text-white" formControlName="identificador" placeholder="Ej. C">
+        <form [formGroup]="nuevaSeccionForm" (ngSubmit)="guardarNuevaSeccion()">
+          
+          <!-- SELECCIONAR CICLO -->
+          <div class="mb-4 border-bottom border-secondary pb-4">
+            <label class="text-info small fw-bold mb-2"><i class="bi bi-calendar-event me-1"></i>Seleccionar Ciclo Escolar</label>
+            <select class="form-select glass-input text-white" formControlName="idCiclo">
+              <option value="" class="text-dark" disabled selected>Elija un ciclo para ver o crear sus secciones...</option>
+              <option class="text-dark" *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo">
+                {{ ciclo.anio }}
+              </option>
+            </select>
           </div>
-          <div class="col-md-4">
-            <label class="text-white-50 small mb-1">Cupo Máximo</label>
-            <input type="number" class="form-control glass-input text-white" formControlName="cupo" min="1">
-          </div>
-          <div class="col-md-3">
-            <button type="submit" class="btn btn-outline-info w-100 rounded-pill" [disabled]="nuevaSeccionForm.invalid">
-              <i class="bi bi-plus-lg"></i> Agregar
-            </button>
+
+          <!-- PASO 2: AGREGAR SECCIÓN Y VER TABLA (Se oculta si no hay ciclo) -->
+          <div *ngIf="nuevaSeccionForm.get('idCiclo')?.value">
+            
+            <div class="row g-2 align-items-end mb-4 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
+              <div class="col-md-5">
+                <label class="text-white-50 small mb-1">Nueva Sección (ID)</label>
+                <input type="text" class="form-control glass-input text-white" formControlName="identificador" placeholder="Ej. C">
+              </div>
+              <div class="col-md-4">
+                <label class="text-white-50 small mb-1">Cupo Máximo</label>
+                <input type="number" class="form-control glass-input text-white" formControlName="cupo" min="1">
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-info w-100 rounded-pill" [disabled]="nuevaSeccionForm.invalid">
+                  <i class="bi bi-plus-lg"></i> Agregar
+                </button>
+              </div>
+            </div>
+
+            <!-- Secciones Actuales del Ciclo -->
+            <div class="table-responsive">
+              <table class="table glass-table text-white mb-0">
+                <thead>
+                  <tr>
+                    <th>Sección</th>
+                    <th>Cupo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="listaSeccionesGrado.length === 0">
+                    <td colspan="4" class="text-center text-white-50 py-3">No hay secciones para este grado en el ciclo seleccionado.</td>
+                  </tr>
+                  <tr *ngFor="let sec of listaSeccionesGrado">
+                    <td><span class="badge bg-secondary">{{ sec.identificador }}</span></td>
+                    <td>{{ sec.cupo }} alumnos</td>
+                    <td>
+                      <button type="button" class="btn btn-sm glass-btn-action text-danger" title="Eliminar Sección" (click)="eliminarSeccion(sec.idSeccion)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
           </div>
         </form>
-
-        <!-- Secciones Actuales -->
-        <div class="table-responsive">
-          <table class="table glass-table text-white mb-0">
-            <thead>
-              <tr>
-                <th>Sección</th>
-                <th>Cupo</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngIf="listaSeccionesGrado.length === 0">
-                <td colspan="4" class="text-center text-white-50 py-3">Este grado no tiene secciones asignadas.</td>
-              </tr>
-              <tr *ngFor="let sec of listaSeccionesGrado">
-                <td><span class="badge bg-secondary">{{ sec.identificador }}</span></td>
-                <td>{{ sec.cupo }} alumnos</td>
-                <td>
-                  <button class="btn btn-sm glass-btn-action text-danger" title="Eliminar Sección" (click)="eliminarSeccion(sec.idSeccion)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
       </div>
     </div>
   </div>

@@ -10,9 +10,8 @@ export class SeccionService {
 
   constructor(private http: HttpClient) {}
 
-  // obtener secciones de un grado especifico
-  getSeccionesPorGrado(idGrado: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/grado/${idGrado}`);
+  getSeccionesPorGradoYCiclo(idGrado: number, idCiclo: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/grado/${idGrado}/ciclo/${idCiclo}`);
   }
 
   agregarSeccion(datos: any): Observable<any> {

@@ -16,8 +16,8 @@ CREATE TABLE estudiante (
     id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
     codigo_personal VARCHAR(20) UNIQUE NOT NULL, 
     nombres VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
+    apelliARCHAR(100) NOT NULL,
+    fecha_nacdos Vimiento DATE NOT NULL,
     informacion_medica TEXT NULL, 
     nombre_encargado VARCHAR(150) NOT NULL,
     contacto_encargado VARCHAR(100) NOT NULL,
@@ -73,6 +73,8 @@ CREATE TABLE seccion (
     identificador VARCHAR(10) NOT NULL,
     cupo INT NOT NULL,
     id_grado INT NOT NULL,
+    id_ciclo INT NOT NULL,
+    FOREIGN KEY (id_ciclo) REFERENCES ciclo_lectivo(id_ciclo)
     FOREIGN KEY (id_grado) REFERENCES grado(id_grado)
 );
 
@@ -187,7 +189,8 @@ CREATE TABLE prestamo (
 CREATE TABLE pago (
     id_pago INT AUTO_INCREMENT PRIMARY KEY,
     numero_factura VARCHAR(50) UNIQUE NOT NULL,
-    id_estudiante INT NOT NULL,
+    id_estudiante INT NULL,
+    id_empleado INT NULL
     id_ciclo INT NOT NULL,   
     concepto ENUM('INSCRIPCION', 'COLEGIATURA', 'EXTRACURRICULAR', 'MULTA_BIBLIOTECA') NOT NULL,
     mes_colegiatura INT NULL,  
@@ -198,8 +201,10 @@ CREATE TABLE pago (
     motivo_anulacion VARCHAR(255) NULL,
     id_prestamo INT NULL, 
     FOREIGN KEY (id_estudiante) REFERENCES estudiante(id_estudiante),
+    FOREIGN KEY (id_empleado) REFERENCES empleado(id_empleado),
     FOREIGN KEY (id_ciclo) REFERENCES ciclo_lectivo(id_ciclo),
-    FOREIGN KEY (id_prestamo) REFERENCES prestamo(id_prestamo)
+    FOREIGN KEY (id_prestamo) REFERENCES prestamo(id_prestamo),
+    CHECK (id_estudiante iS NOT NULL OR id_empleado IS NOT NULL)
 );
 
 

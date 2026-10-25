@@ -19,11 +19,37 @@ public class PrestamoResponseDTO {
     private int renovaciones;
     private double multaGenerada;
     private boolean multaPagada;
+    private int idEstudiante;
+    private int idEmpleado;
 
+    public PrestamoResponseDTO() {
+    }
+    
+    public PrestamoResponseDTO(int idPrestamo, int idLibro, String codigoLibro, String tituloLibro, String nombreSolicitante, String tipoSolicitante, LocalDate fechaSolicitud, LocalDate fechaPrestamo, LocalDate fechaLimite, LocalDate fechaDevolucion, EstadoPrestamo estado, int renovaciones, double multaGenerada, boolean multaPagada, int idEstudiante, int idEmpleado) {
+        this.idPrestamo = idPrestamo;
+        this.idLibro = idLibro;
+        this.codigoLibro = codigoLibro;
+        this.tituloLibro = tituloLibro;
+        this.nombreSolicitante = nombreSolicitante;
+        this.tipoSolicitante = tipoSolicitante;
+        this.fechaSolicitud = fechaSolicitud;
+        this.fechaPrestamo = fechaPrestamo;
+        this.fechaLimite = fechaLimite;
+        this.fechaDevolucion = fechaDevolucion;
+        this.estado = estado;
+        this.renovaciones = renovaciones;
+        this.multaGenerada = multaGenerada;
+        this.multaPagada = multaPagada;
+        this.idEstudiante = idEstudiante;
+        this.idEmpleado = idEmpleado;
+    }
+
+    
+    
     public int getIdPrestamo() {
         return idPrestamo;
     }
-
+    
     public void setIdPrestamo(int idPrestamo) {
         this.idPrestamo = idPrestamo;
     }
@@ -131,4 +157,22 @@ public class PrestamoResponseDTO {
     public void setMultaPagada(boolean multaPagada) {
         this.multaPagada = multaPagada;
     }
+
+    public int getIdEstudiante() {
+        return idEstudiante;
+    }
+
+    public int getIdEmpleado() {
+        return idEmpleado;
+    }
+
+    public void setIdEstudiante(int idEstudiante) {
+        this.idEstudiante = idEstudiante;
+    }
+
+    public void setIdEmpleado(int idEmpleado) {
+        this.idEmpleado = idEmpleado;
+    }
+    
+    
 }

@@ -36,6 +36,7 @@ public class GradoResource {
                     Seccion seccion = new Seccion();
                     seccion.setIdentificador(secDTO.getIdentificador());
                     seccion.setCupo(secDTO.getCupo());
+                    seccion.setIdCiclo(request.getIdCiclo());
                     seccionesModelo.add(seccion);
                 }
             }
@@ -89,6 +90,19 @@ public class GradoResource {
             @QueryParam("limite") @DefaultValue("5") int limite) {
         try {
             List<Grado> grados = gradoDAO.listarPaginado(pagina, limite);
+            return Response.ok(grados).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/ciclo/{idCiclo}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listarGradosPorCiclo(@PathParam("idCiclo") int idCiclo) {
+        try {
+            List<Grado> grados = gradoDAO.listarConSeccionesPorCiclo(idCiclo);
             return Response.ok(grados).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

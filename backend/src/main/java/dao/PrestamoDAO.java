@@ -153,7 +153,7 @@ public class PrestamoDAO {
         }
     }
 
-    // Registrar devolución y calcular multas
+    // Registrar devolución y multas
     public boolean devolverLibro(int idPrestamo, double multaAplicada) throws BDException {
         String select = "SELECT id_libro FROM prestamo WHERE id_prestamo = ? AND estado = 'ACTIVO'";
         String updatePrestamo = "UPDATE prestamo SET estado = 'DEVUELTO', fecha_devolucion = ?, multa_generada = ? WHERE id_prestamo = ?";
@@ -177,7 +177,7 @@ public class PrestamoDAO {
 
                 try (PreparedStatement ps = conn.prepareStatement(updatePrestamo)) {
                     ps.setDate(1, Date.valueOf(LocalDate.now()));
-                    ps.setDouble(2, multaAplicada); 
+                    ps.setDouble(2, multaAplicada);
                     ps.setInt(3, idPrestamo);
                     ps.executeUpdate();
                 }
@@ -219,7 +219,7 @@ public class PrestamoDAO {
             }
 
             try (PreparedStatement psUpdate = conn.prepareStatement(update)) {
-                psUpdate.setDate(1, Date.valueOf(nuevaFecha)); 
+                psUpdate.setDate(1, Date.valueOf(nuevaFecha));
                 psUpdate.setInt(2, idPrestamo);
                 return psUpdate.executeUpdate() > 0;
             }
@@ -254,32 +254,43 @@ public class PrestamoDAO {
     public List<PrestamoResponseDTO> listarPrestamos(Integer idEstudiante, Integer idEmpleado, String estadoFiltro, int pagina, int limite) throws BDException {
         List<PrestamoResponseDTO> lista = new ArrayList<>();
         int offset = (pagina - 1) * limite;
-        
+
         StringBuilder sql = new StringBuilder(
-            "SELECT p.*, l.codigo AS codigo_libro, l.titulo AS titulo_libro, " +
-            "e.nombres AS est_nom, e.apellidos AS est_ape, " +
-            "emp.nombres AS emp_nom, emp.apellidos AS emp_ape " +
-            "FROM prestamo p " +
-            "INNER JOIN libro l ON p.id_libro = l.id_libro " +
-            "LEFT JOIN estudiante e ON p.id_estudiante = e.id_estudiante " +
-            "LEFT JOIN empleado emp ON p.id_empleado = emp.id_empleado " +
-            "WHERE 1=1 "
+                "SELECT p.*, l.codigo AS codigo_libro, l.titulo AS titulo_libro, "
+                + "e.nombres AS est_nom, e.apellidos AS est_ape, "
+                + "emp.nombres AS emp_nom, emp.apellidos AS emp_ape "
+                + "FROM prestamo p "
+                + "INNER JOIN libro l ON p.id_libro = l.id_libro "
+                + "LEFT JOIN estudiante e ON p.id_estudiante = e.id_estudiante "
+                + "LEFT JOIN empleado emp ON p.id_empleado = emp.id_empleado "
+                + "WHERE 1=1 "
         );
 
-        if (idEstudiante != null) sql.append("AND p.id_estudiante = ? ");
-        if (idEmpleado != null) sql.append("AND p.id_empleado = ? ");
-        if (estadoFiltro != null && !estadoFiltro.isEmpty()) sql.append("AND p.estado = ? ");
-        
+        if (idEstudiante != null) {
+            sql.append("AND p.id_estudiante = ? ");
+        }
+        if (idEmpleado != null) {
+            sql.append("AND p.id_empleado = ? ");
+        }
+        if (estadoFiltro != null && !estadoFiltro.isEmpty()) {
+            sql.append("AND p.estado = ? ");
+        }
+
         sql.append("ORDER BY p.id_prestamo DESC LIMIT ? OFFSET ?");
 
-        try (Connection conn = DBConnectionSingleton.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-             
+        try (Connection conn = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
             int paramIndex = 1;
-            if (idEstudiante != null) ps.setInt(paramIndex++, idEstudiante);
-            if (idEmpleado != null) ps.setInt(paramIndex++, idEmpleado);
-            if (estadoFiltro != null && !estadoFiltro.isEmpty()) ps.setString(paramIndex++, estadoFiltro);
-            
+            if (idEstudiante != null) {
+                ps.setInt(paramIndex++, idEstudiante);
+            }
+            if (idEmpleado != null) {
+                ps.setInt(paramIndex++, idEmpleado);
+            }
+            if (estadoFiltro != null && !estadoFiltro.isEmpty()) {
+                ps.setString(paramIndex++, estadoFiltro);
+            }
+
             ps.setInt(paramIndex++, limite);
             ps.setInt(paramIndex++, offset);
 
@@ -290,7 +301,7 @@ public class PrestamoDAO {
                     dto.setIdLibro(rs.getInt("id_libro"));
                     dto.setCodigoLibro(rs.getString("codigo_libro"));
                     dto.setTituloLibro(rs.getString("titulo_libro"));
-                    
+
                     if (rs.getObject("id_estudiante") != null) {
                         dto.setNombreSolicitante(rs.getString("est_nom") + " " + rs.getString("est_ape"));
                         dto.setTipoSolicitante("ESTUDIANTE");
@@ -299,16 +310,24 @@ public class PrestamoDAO {
                         dto.setTipoSolicitante("MAESTRO");
                     }
 
-                    if (rs.getDate("fecha_solicitud") != null) dto.setFechaSolicitud(rs.getDate("fecha_solicitud").toLocalDate());
-                    if (rs.getDate("fecha_prestamo") != null) dto.setFechaPrestamo(rs.getDate("fecha_prestamo").toLocalDate());
-                    if (rs.getDate("fecha_limite") != null) dto.setFechaLimite(rs.getDate("fecha_limite").toLocalDate());
-                    if (rs.getDate("fecha_devolucion") != null) dto.setFechaDevolucion(rs.getDate("fecha_devolucion").toLocalDate());
-                    
+                    if (rs.getDate("fecha_solicitud") != null) {
+                        dto.setFechaSolicitud(rs.getDate("fecha_solicitud").toLocalDate());
+                    }
+                    if (rs.getDate("fecha_prestamo") != null) {
+                        dto.setFechaPrestamo(rs.getDate("fecha_prestamo").toLocalDate());
+                    }
+                    if (rs.getDate("fecha_limite") != null) {
+                        dto.setFechaLimite(rs.getDate("fecha_limite").toLocalDate());
+                    }
+                    if (rs.getDate("fecha_devolucion") != null) {
+                        dto.setFechaDevolucion(rs.getDate("fecha_devolucion").toLocalDate());
+                    }
+
                     dto.setEstado(EstadoPrestamo.valueOf(rs.getString("estado")));
                     dto.setRenovaciones(rs.getInt("renovaciones"));
                     dto.setMultaGenerada(rs.getDouble("multa_generada"));
                     dto.setMultaPagada(rs.getBoolean("multa_pagada"));
-                    
+
                     lista.add(dto);
                 }
             }
@@ -316,5 +335,136 @@ public class PrestamoDAO {
             throw new BDException("Error al listar los préstamos: " + e.getMessage(), e);
         }
         return lista;
+    }
+
+    public List<PrestamoResponseDTO> listarMultasPendientes() throws BDException {
+        List<PrestamoResponseDTO> lista = new ArrayList<>();
+        String query = "SELECT p.*, l.codigo AS codigo_libro, l.titulo AS titulo_libro, "
+                + "e.nombres AS est_nom, e.apellidos AS est_ape, "
+                + "emp.nombres AS emp_nom, emp.apellidos AS emp_ape "
+                + "FROM prestamo p "
+                + "INNER JOIN libro l ON p.id_libro = l.id_libro "
+                + "LEFT JOIN estudiante e ON p.id_estudiante = e.id_estudiante "
+                + "LEFT JOIN empleado emp ON p.id_empleado = emp.id_empleado "
+                + "WHERE p.multa_generada > 0 AND p.multa_pagada = false "
+                + "ORDER BY p.fecha_devolucion DESC";
+
+        try (Connection conn = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                PrestamoResponseDTO dto = new PrestamoResponseDTO();
+                dto.setIdPrestamo(rs.getInt("id_prestamo"));
+                dto.setIdLibro(rs.getInt("id_libro"));
+                dto.setTituloLibro(rs.getString("titulo_libro"));
+                dto.setCodigoLibro(rs.getString("codigo_libro"));
+
+                if (rs.getObject("id_estudiante") != null) {
+                    dto.setNombreSolicitante(rs.getString("est_nom") + " " + rs.getString("est_ape"));
+                    dto.setTipoSolicitante("ESTUDIANTE");
+                    dto.setIdEstudiante(rs.getInt("id_estudiante"));
+                } else {
+                    dto.setNombreSolicitante(rs.getString("emp_nom") + " " + rs.getString("emp_ape"));
+                    dto.setTipoSolicitante("MAESTRO");
+                    dto.setIdEmpleado(rs.getInt("id_empleado"));
+                }
+
+                if (rs.getDate("fecha_solicitud") != null) {
+                    dto.setFechaSolicitud(rs.getDate("fecha_solicitud").toLocalDate());
+                }
+                if (rs.getDate("fecha_prestamo") != null) {
+                    dto.setFechaPrestamo(rs.getDate("fecha_prestamo").toLocalDate());
+                }
+                if (rs.getDate("fecha_limite") != null) {
+                    dto.setFechaLimite(rs.getDate("fecha_limite").toLocalDate());
+                }
+                if (rs.getDate("fecha_devolucion") != null) {
+                    dto.setFechaDevolucion(rs.getDate("fecha_devolucion").toLocalDate());
+                }
+
+                dto.setEstado(EstadoPrestamo.valueOf(rs.getString("estado")));
+                dto.setRenovaciones(rs.getInt("renovaciones"));
+                dto.setMultaGenerada(rs.getDouble("multa_generada"));
+                dto.setMultaPagada(rs.getBoolean("multa_pagada"));
+
+                lista.add(dto);
+            }
+        } catch (SQLException e) {
+            throw new BDException("Error al listar multas pendientes: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
+    public boolean pagarMulta(int idPrestamo, String numeroFactura, int idCiclo) throws BDException {
+        String selectPrestamo = "SELECT id_estudiante, id_empleado, multa_generada FROM prestamo WHERE id_prestamo = ? AND multa_pagada = FALSE";
+        String insertPago = "INSERT INTO pago (numero_factura, id_estudiante, id_empleado, id_ciclo, concepto, descripcion, monto, fecha_pago, estado, id_prestamo) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String updatePrestamo = "UPDATE prestamo SET multa_pagada = TRUE WHERE id_prestamo = ?";
+
+        Connection conn = null;
+        try {
+            conn = DBConnectionSingleton.getInstance().getConnection();
+            conn.setAutoCommit(false); 
+
+            Integer idEstudiante = null;
+            Integer idEmpleado = null;
+            double montoMulta = 0.0;
+
+            // extraer deudor y deuda
+            try (PreparedStatement psSelect = conn.prepareStatement(selectPrestamo)) {
+                psSelect.setInt(1, idPrestamo);
+                try (ResultSet rs = psSelect.executeQuery()) {
+                    if (rs.next()) {
+                        idEstudiante = (Integer) rs.getObject("id_estudiante");
+                        idEmpleado = (Integer) rs.getObject("id_empleado");
+                        montoMulta = rs.getDouble("multa_generada");
+                    } else {
+                        throw new BDException("No se encontró la multa o ya estaba pagada.");
+                    }
+                }
+            }
+
+            // insertar pago
+            try (PreparedStatement psInsert = conn.prepareStatement(insertPago)) {
+                psInsert.setString(1, numeroFactura);
+                psInsert.setObject(2, idEstudiante, java.sql.Types.INTEGER);
+                psInsert.setObject(3, idEmpleado, java.sql.Types.INTEGER);
+                psInsert.setInt(4, idCiclo);
+                psInsert.setString(5, enums.ConceptoPago.MULTA_BIBLIOTECA.name());
+                psInsert.setString(6, "Pago de multa por retraso de biblioteca");
+                psInsert.setDouble(7, montoMulta);
+                psInsert.setDate(8, java.sql.Date.valueOf(java.time.LocalDate.now()));
+                psInsert.setString(9, enums.EstadoPago.ACTIVO.name());
+                psInsert.setInt(10, idPrestamo);
+                psInsert.executeUpdate();
+            }
+
+            // quitar mora
+            try (PreparedStatement psUpdate = conn.prepareStatement(updatePrestamo)) {
+                psUpdate.setInt(1, idPrestamo);
+                psUpdate.executeUpdate();
+            }
+
+            conn.commit(); 
+            return true;
+
+        } catch (SQLException | BDException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                } 
+            }
+            throw new BDException("Error al registrar el pago. Es posible que el número de factura ya exista.", e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

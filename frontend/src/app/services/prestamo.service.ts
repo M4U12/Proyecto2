@@ -41,4 +41,12 @@ export class PrestamoService {
 
     return this.http.get<any[]>(this.apiUrl, { params });
   }
+
+  getMultasPendientes(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/multas/pendientes`);
+  }
+
+  pagarMulta(idPrestamo: number, datosFactura: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idPrestamo}/pagar-multa`, datosFactura);
+  }
 }

@@ -26,23 +26,24 @@ public class SeccionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response agregarSeccion(NuevaSeccionDTO request) {
         try {
-            // valida que la seccion no exista ya en ese grado
-            Optional<Seccion> existente = seccionDAO.buscarPorGradoEIdentificador(request.getIdGrado(), request.getIdentificador());
+            // validacion incluyendo el ciclo
+            Optional<Seccion> existente = seccionDAO.buscarPorGradoCicloEIdentificador(request.getIdGrado(), request.getIdCiclo(), request.getIdentificador());
             if (existente.isPresent()) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"error\":\"La sección '" + request.getIdentificador() + "' ya existe para este grado.\"}").build();
+                        .entity("{\"error\":\"La sección '" + request.getIdentificador() + "' ya existe para este grado en este ciclo escolar.\"}").build();
             }
 
             Seccion nuevaSeccion = new Seccion();
             nuevaSeccion.setIdentificador(request.getIdentificador());
             nuevaSeccion.setCupo(request.getCupo());
             nuevaSeccion.setIdGrado(request.getIdGrado());
+            nuevaSeccion.setIdCiclo(request.getIdCiclo()); 
 
             boolean registrado = seccionDAO.registrarSeccion(nuevaSeccion);
 
             if (registrado) {
                 return Response.status(Response.Status.CREATED)
-                        .entity("{\"mensaje\":\"Sección agregada exitosamente.\"}").build();
+                        .entity("{\"mensaje\":\"Sección agregada exitosamente al ciclo.\"}").build();
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity("{\"error\":\"No se pudo registrar la sección.\"}").build();
@@ -88,11 +89,11 @@ public class SeccionResource {
     }
 
     @GET
-    @Path("/grado/{idGrado}")
+    @Path("/grado/{idGrado}/ciclo/{idCiclo}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listarPorGrado(@PathParam("idGrado") int idGrado) {
+    public Response listarPorGradoYCiclo(@PathParam("idGrado") int idGrado, @PathParam("idCiclo") int idCiclo) {
         try {
-            List<Seccion> secciones = seccionDAO.listarPorGrado(idGrado);
+            List<Seccion> secciones = seccionDAO.listarPorGradoYCiclo(idGrado, idCiclo);
             return Response.ok(secciones).build();
         } catch (BDException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

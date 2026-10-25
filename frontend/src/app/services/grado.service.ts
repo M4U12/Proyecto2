@@ -21,4 +21,8 @@ export class GradoService {
   modificarGrado(id: number, datos: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, datos);
   }
+
+  getGradosPorCiclo(idCiclo: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ciclo/${idCiclo}`);
+  }
 }

@@ -111,35 +111,44 @@
       </div>
 
       <!-- FORMULARIO DE CORRECCIÓN DE INSCRIPCIÓN -->
+      <!-- FORMULARIO DE CORRECCIÓN DE INSCRIPCIÓN / REINCRIPCIÓN -->
       <div *ngIf="estudianteSeleccionado && modoReasignacion">
-        <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-pencil-square me-2"></i>Corregir Inscripción</h5>
+        <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-pencil-square me-2"></i>Corregir / Reinscribir</h5>
         
         <div class="alert alert-warning glass-alert py-2 small border-warning text-black">
           <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> 
-          <strong>Atención:</strong> El estudiante está matriculado en <strong>{{ estudianteSeleccionado.nombreGradoActual }}</strong>. Usa esta opción únicamente para corregir errores de matrícula reciente. Si deseas modificar solo la sección, selecciona el grado actual del estudiante.
+          El estudiante ya está matriculado en <strong>{{ estudianteSeleccionado.nombreGradoActual }} ({{ estudianteSeleccionado.anioCicloActivo }})</strong>. Usa este formulario para corregir su asignación actual o para reinscribirlo en un nuevo ciclo escolar.
         </div>
 
         <form class="row g-3 mt-2" [formGroup]="reasignacionForm" (ngSubmit)="corregirInscripcion()">
           
+          <div class="col-md-12 mt-2">
+            <label class="text-white-50 small mb-1">Ciclo Escolar (Destino)</label>
+            <select class="form-select glass-input text-white" formControlName="idCicloDestino">
+              <option value="" disabled selected>Seleccione el ciclo...</option>
+              <option *ngFor="let ciclo of listaCiclos" [value]="ciclo.idCiclo" class="text-dark">{{ ciclo.anio }}</option>
+            </select>
+          </div>
+
           <div class="col-md-6 mt-3">
-            <label class="text-white-50 small mb-1">Corregir Grado</label>
+            <label class="text-white-50 small mb-1">Grado Destino</label>
             <select class="form-select glass-input text-white" formControlName="idNuevoGrado" (change)="cargarSeccionesCorreccion($event)">
-              <option value="" disabled selected>Seleccione el grado correcto...</option>
+              <option value="" disabled selected>Seleccione el grado...</option>
               <option *ngFor="let grado of listaGrados" [value]="grado.idGrado" class="text-dark">{{ grado.nombre }}</option>
             </select>
           </div>
 
           <div class="col-md-6 mt-3">
-            <label class="text-white-50 small mb-1">Nueva Sección</label>
+            <label class="text-white-50 small mb-1">Sección Destino</label>
             <select class="form-select glass-input text-white" formControlName="idNuevaSeccion">
-              <option value="" disabled selected>Esperando grado...</option>
+              <option value="" disabled selected>Selecciona si existe</option>
               <option *ngFor="let sec of listaSecciones" [value]="sec.idSeccion" class="text-dark">Sección {{ sec.identificador }} (Cupo: {{ sec.cupo }})</option>
             </select>
           </div>
           
           <div class="col-12 text-end mt-4">
             <button type="submit" class="btn btn-warning glass-btn text-dark fw-bold rounded-pill px-4" [disabled]="reasignacionForm.invalid">
-              GUARDAR CORRECCIÓN
+              GUARDAR CAMBIOS
             </button>
           </div>
         </form>

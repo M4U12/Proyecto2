@@ -5,6 +5,7 @@ import { GradoService } from '../../services/grado.service';
 import { NivelService } from '../../services/nivel.service';
 import { CarreraService } from '../../services/carrera.service';
 import { SeccionService } from '../../services/seccion.service';
+import { CicloService } from '../../services/ciclo.service';
 
 @Component({
   selector: 'app-grados',
@@ -16,11 +17,17 @@ export class Grados implements OnInit {
   gradoForm: FormGroup;
   gradoEditForm: FormGroup;
   nuevaSeccionForm: FormGroup;
+  
   listaGrados: any[] = [];
   listaNiveles: any[] = [];
   listaCarreras: any[] = [];
+  listaCiclos: any[] = []; 
+  
   gradoSeleccionado: any = null; 
   listaSeccionesGrado: any[] = [];
+  
+  paginaActual: number = 1;
+  limitePorPagina: number = 5;
 
   constructor(
     private fb: FormBuilder,
@@ -28,40 +35,43 @@ export class Grados implements OnInit {
     private nivelService: NivelService,
     private carreraService: CarreraService,
     private seccionService: SeccionService,
+    private cicloService: CicloService, 
     private cdr: ChangeDetectorRef
   ) {
-    // Registro de Grado y Secciones
     this.gradoForm = this.fb.group({
       nombre: ['', Validators.required],
       idNivel: ['', Validators.required],
-      idCarrera: [{ value: '', disabled: true }], // Nace bloqueado
+      idCarrera: [{ value: '', disabled: true }], 
+      idCiclo: ['', Validators.required], 
       secciones: this.fb.array([]) 
     });
 
-    // Edición de Grado
     this.gradoEditForm = this.fb.group({
       idGrado: [''],
       nombre: ['', Validators.required],
       idNivel: ['', Validators.required],
-      idCarrera: [{ value: '', disabled: true }] // Nace bloqueado
+      idCarrera: [{ value: '', disabled: true }] 
     });
 
-    // Agregar sección 
     this.nuevaSeccionForm = this.fb.group({
+      idCiclo: ['', Validators.required], 
       identificador: ['', Validators.required],
       cupo: [30, [Validators.required, Validators.min(1)]]
     });
 
-    //  PARA BLOQUEAR/DESBLOQUEAR LA CARRERA
     this.gradoForm.get('idNivel')?.valueChanges.subscribe(id => this.verificarCarrera(id, this.gradoForm));
     this.gradoEditForm.get('idNivel')?.valueChanges.subscribe(id => this.verificarCarrera(id, this.gradoEditForm));
+    
+    // Al cambiar de ciclo en el modal, buscar sus secciones automáticamente
+    this.nuevaSeccionForm.get('idCiclo')?.valueChanges.subscribe(idCiclo => {
+      if (idCiclo) this.cargarSeccionesDelGradoSeleccionado();
+    });
   }
 
   ngOnInit(): void {
     this.cargarCatalogos();
     this.agregarSeccion(); 
   }
-
 
   cargarCatalogos() {
     this.nivelService.getNiveles().subscribe(datos => {
@@ -70,11 +80,12 @@ export class Grados implements OnInit {
     this.carreraService.getCarreras().subscribe(datos => {
       this.listaCarreras = datos.filter((c: any) => c.estado === true);
     });
+    this.cicloService.getCiclos(1, 100).subscribe(res => {
+      this.listaCiclos = res.filter((c: any) => c.estado === 'ABIERTO' || c.estado === true);
+    });
     this.cargarGrados();
   }
 
-  paginaActual: number = 1;
-  limitePorPagina: number = 5;
   cargarGrados() {
     this.gradoService.getGrados(this.paginaActual, this.limitePorPagina).subscribe({
       next: (datos) => {
@@ -115,7 +126,6 @@ export class Grados implements OnInit {
     }
   }
 
-
   get secciones() {
     return this.gradoForm.get('secciones') as FormArray;
   }
@@ -148,6 +158,7 @@ export class Grados implements OnInit {
       nombre: formularioBruto.nombre,
       idNivel: Number(formularioBruto.idNivel),
       idCarrera: formularioBruto.idCarrera ? Number(formularioBruto.idCarrera) : null,
+      idCiclo: Number(formularioBruto.idCiclo),
       secciones: formularioBruto.secciones
     };
 
@@ -164,15 +175,12 @@ export class Grados implements OnInit {
     });
   }
 
-
   // EDICIÓN DE GRADO MODAL 1
   abrirModalEdicion(grado: any) {
     this.gradoEditForm.patchValue({
       idGrado: grado.idGrado,
       nombre: grado.nombre,
-      idNivel: grado.idNivel
-    });
-    this.gradoEditForm.patchValue({
+      idNivel: grado.idNivel,
       idCarrera: grado.idCarrera || ''
     });
   }
@@ -198,18 +206,26 @@ export class Grados implements OnInit {
     });
   }
 
-
   // GESTIÓN DE SECCIONES INDIVIDUALES MODAL 2
   abrirModalSecciones(grado: any) {
     this.gradoSeleccionado = grado;
-    this.cargarSeccionesDelGradoSeleccionado();
-    this.nuevaSeccionForm.reset({ cupo: 30 });
+    this.listaSeccionesGrado = []; 
+    
+    const cicloActivo = this.listaCiclos.find(c => c.estado === 'ABIERTO');
+    const idPreseleccionado = cicloActivo ? cicloActivo.idCiclo : '';
+
+    this.nuevaSeccionForm.reset({ cupo: 30, idCiclo: idPreseleccionado });
+
+    if (idPreseleccionado) {
+      this.cargarSeccionesDelGradoSeleccionado();
+    }
   }
 
   cargarSeccionesDelGradoSeleccionado() {
-    if (!this.gradoSeleccionado) return;
+    const idCiclo = this.nuevaSeccionForm.value.idCiclo;
+    if (!this.gradoSeleccionado || !idCiclo) return;
     
-    this.seccionService.getSeccionesPorGrado(this.gradoSeleccionado.idGrado).subscribe({
+    this.seccionService.getSeccionesPorGradoYCiclo(this.gradoSeleccionado.idGrado, Number(idCiclo)).subscribe({
       next: (datos) => {
         this.listaSeccionesGrado = datos;
         this.cdr.detectChanges();
@@ -223,14 +239,15 @@ export class Grados implements OnInit {
 
     const payload = {
       idGrado: this.gradoSeleccionado.idGrado,
+      idCiclo: Number(this.nuevaSeccionForm.value.idCiclo), 
       identificador: this.nuevaSeccionForm.value.identificador,
       cupo: this.nuevaSeccionForm.value.cupo
     };
 
     this.seccionService.agregarSeccion(payload).subscribe({
       next: () => {
-        this.cargarSeccionesDelGradoSeleccionado();
-        this.nuevaSeccionForm.reset({ cupo: 30 });
+        this.cargarSeccionesDelGradoSeleccionado(); // Recarga la tabla de ese ciclo
+        this.nuevaSeccionForm.patchValue({ identificador: '', cupo: 30 }); // Solo borra los campos de texto, mantiene el ciclo seleccionado
       },
       error: (err) => alert('Error: ' + (err.error?.error || 'Intenta de nuevo'))
     });
