@@ -33,4 +33,8 @@ export class PagoService {
   descargarSolvenciaPdf(idEstudiante: number, idCiclo: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${idEstudiante}/solvencia/${idCiclo}`, { responseType: 'blob' });
   }
+  
+  consultarEstadoCuenta(idEstudiante: number, idCiclo: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${idEstudiante}/estado-cuenta/${idCiclo}`);
+  }
 }

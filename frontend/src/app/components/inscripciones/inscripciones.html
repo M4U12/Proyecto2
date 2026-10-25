@@ -57,7 +57,7 @@
         </div>
         <div *ngIf="modoReasignacion" class="mt-2 p-2 rounded bg-dark bg-opacity-50">
           <p class="text-white small mb-0 fw-bold">{{ estudianteSeleccionado.nombreGradoActual }} - Sección {{ estudianteSeleccionado.identificadorSeccion }}</p>
-          <p class="text-white-50 small mb-0">Ciclo Activo: {{ estudianteSeleccionado.anioCicloActivo }}</p>
+          <p class="text-white-50 small mb-0 "> Ciclo Activo: {{ listaCiclos[0]?.anio }}</p>
         </div>
       </div>
     </div>
@@ -110,7 +110,6 @@
         </form>
       </div>
 
-      <!-- FORMULARIO DE CORRECCIÓN DE INSCRIPCIÓN -->
       <!-- FORMULARIO DE CORRECCIÓN DE INSCRIPCIÓN / REINCRIPCIÓN -->
       <div *ngIf="estudianteSeleccionado && modoReasignacion">
         <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-pencil-square me-2"></i>Corregir / Reinscribir</h5>

@@ -47,7 +47,7 @@ export class Tesoreria implements OnInit {
     { id: 10, nombre: 'Octubre' }, { id: 11, nombre: 'Noviembre' }, { id: 12, nombre: 'Diciembre' }
   ];
 
-  // Variables Historial (NUEVO)
+  // Variables Historial 
   historialPagos: any[] = [];
   paginaHistorial: number = 1;
   limiteHistorial: number = 10;

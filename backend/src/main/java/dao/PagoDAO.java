@@ -1,6 +1,9 @@
 package dao;
 
 import dbconection.DBConnectionSingleton;
+import dto.DetalleMesDTO;
+import dto.EstadoCuentaDTO;
+import dto.OtroPagoDTO;
 import dto.PagoRequestDTO;
 import dto.PagoResponseDTO;
 import enums.ConceptoPago;
@@ -14,29 +17,29 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PagoDAO {
 
-    public boolean verificarInscripcionPagada(int idEstudiante, int idCiclo) throws BDException {
-        String query = "SELECT COUNT(*) AS total FROM pago WHERE id_estudiante = ? AND id_ciclo = ? AND concepto = ? AND estado = ?";
-
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = connection.prepareStatement(query)) {
-
+    public boolean verificarInscripcionPagada(int idEstudiante, int idCiclo) {
+        String query = "SELECT 1 FROM pago " +
+                       "WHERE id_estudiante = ? AND id_ciclo = ? AND concepto = 'INSCRIPCION' AND estado = 'ACTIVO' LIMIT 1";
+        
+        try (Connection conn = DBConnectionSingleton.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+             
             ps.setInt(1, idEstudiante);
             ps.setInt(2, idCiclo);
-            ps.setString(3, ConceptoPago.INSCRIPCION.name());
-            ps.setString(4, EstadoPago.ACTIVO.name());
-
+            
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("total") > 0;
-                }
+                return rs.next();
             }
         } catch (SQLException e) {
-            throw new BDException("Error al verificar el estado de la inscripción: " + e.getMessage(), e);
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public boolean verificarColegiaturaPagada(int idEstudiante, int idCiclo, int mes) throws BDException {
@@ -209,7 +212,7 @@ public class PagoDAO {
         }
         return lista;
     }
-    
+
     public String verificarSolvenciaEstudiante(int idEstudiante, int idCiclo) throws BDException {
         if (!verificarInscripcionPagada(idEstudiante, idCiclo)) {
             return "No ha pagado la inscripción del ciclo actual.";
@@ -217,25 +220,24 @@ public class PagoDAO {
 
         // Calcula hasta qué mes se le debe exigir el pago
         int mesActual = LocalDate.now().getMonthValue();
-        int mesExigible = Math.min(mesActual, 10); 
+        int mesExigible = Math.min(mesActual, 10);
 
         //Obtener el último mes de colegiatura pagado
-        String query = "SELECT MAX(mes_colegiatura) as ultimo_mes FROM pago " +
-                       "WHERE id_estudiante = ? AND id_ciclo = ? " +
-                       "AND concepto = 'COLEGIATURA' AND estado = 'ACTIVO'";
+        String query = "SELECT MAX(mes_colegiatura) as ultimo_mes FROM pago "
+                + "WHERE id_estudiante = ? AND id_ciclo = ? "
+                + "AND concepto = 'COLEGIATURA' AND estado = 'ACTIVO'";
 
-        try (Connection conn = dbconection.DBConnectionSingleton.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-             
+        try (Connection conn = dbconection.DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
+
             ps.setInt(1, idEstudiante);
             ps.setInt(2, idCiclo);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 int ultimoMesPagado = 0;
                 if (rs.next()) {
                     ultimoMesPagado = rs.getInt("ultimo_mes"); // retorna 0 si es null
                 }
-                
+
                 if (ultimoMesPagado < mesExigible) {
                     // calcula cual es el mes que le toca pagar
                     int mesDeuda = ultimoMesPagado + 1;
@@ -248,6 +250,96 @@ public class PagoDAO {
         }
 
         // Si superó ambas validaciones, no debe colegiatura ni inscripción
-        return ""; 
+        return "";
+    }
+
+    public EstadoCuentaDTO obtenerEstadoCuenta(int idEstudiante, int idCiclo) throws BDException {
+        EstadoCuentaDTO estadoCuenta = new EstadoCuentaDTO();
+        estadoCuenta.setInscripcionPagada(verificarInscripcionPagada(idEstudiante, idCiclo));
+
+        String[] nombresMeses = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre"};
+        List<DetalleMesDTO> listaMeses = new ArrayList<>();
+
+        int mesActual = LocalDate.now().getMonthValue();
+
+        String query = "SELECT mes_colegiatura, monto, fecha_pago, numero_factura FROM pago "
+                + "WHERE id_estudiante = ? AND id_ciclo = ? AND concepto = 'COLEGIATURA' AND estado = 'ACTIVO'";
+
+        try (Connection conn = dbconection.DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setInt(1, idEstudiante);
+            ps.setInt(2, idCiclo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                //se guardan los meses pagados en un mapa para acceso rápido
+                Map<Integer, DetalleMesDTO> pagosRealizados = new HashMap<>();
+                while (rs.next()) {
+                    DetalleMesDTO detalle = new DetalleMesDTO();
+                    detalle.setMonto(rs.getDouble("monto"));
+                    detalle.setFechaPago(rs.getDate("fecha_pago").toString());
+                    detalle.setNumeroFactura(rs.getString("numero_factura"));
+                    pagosRealizados.put(rs.getInt("mes_colegiatura"), detalle);
+                }
+
+                // genera los 10 meses obligatorios
+                for (int i = 1; i <= 10; i++) {
+                    DetalleMesDTO mes = new DetalleMesDTO();
+                    mes.setMesId(i);
+                    mes.setNombreMes(nombresMeses[i]);
+
+                    if (pagosRealizados.containsKey(i)) {
+                        DetalleMesDTO pago = pagosRealizados.get(i);
+                        mes.setEstado("PAGADO");
+                        mes.setMonto(pago.getMonto());
+                        mes.setFechaPago(pago.getFechaPago());
+                        mes.setNumeroFactura(pago.getNumeroFactura());
+                    } else {
+                        // si el mes exigible ya pasó y no está pagado, está atrasado
+                        mes.setEstado(i < mesActual ? "ATRASADO" : "PENDIENTE");
+                        mes.setMonto(0.0);
+                        mes.setFechaPago(null);
+                        mes.setNumeroFactura(null);
+                    }
+                    listaMeses.add(mes);
+                }
+                estadoCuenta.setColegiaturas(listaMeses);
+            }
+            
+            estadoCuenta.setOtrosPagos(obtenerOtrosPagos(conn, idEstudiante, idCiclo));
+        } catch (SQLException e) {
+            throw new BDException("Error al consultar el estado de cuenta: " + e.getMessage(), e);
+        }
+        return estadoCuenta;
+    }
+    
+    private List<OtroPagoDTO> obtenerOtrosPagos(Connection conn, int idEstudiante, int idCiclo) {
+        List<OtroPagoDTO> listaOtros = new ArrayList<>();
+        String query = "SELECT concepto, descripcion, monto, fecha_pago, numero_factura FROM pago " +
+                       "WHERE id_estudiante = ? AND id_ciclo = ? AND concepto IN ('EXTRACURRICULAR', 'MULTA_BIBLIOTECA') AND estado = 'ACTIVO'";
+
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+             
+            ps.setInt(1, idEstudiante);
+            ps.setInt(2, idCiclo);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    OtroPagoDTO otro = new OtroPagoDTO();
+                    otro.setConcepto(rs.getString("concepto"));
+                    otro.setDescripcion(rs.getString("descripcion"));
+                    otro.setMonto(rs.getDouble("monto")); 
+                    
+                    Date fecha = rs.getDate("fecha_pago");
+                    otro.setFechaPago(fecha != null ? fecha.toString() : null);
+                    otro.setNumeroFactura(rs.getString("numero_factura"));
+                    
+                    listaOtros.add(otro);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener otros pagos: " + e.getMessage());
+        }
+        
+        return listaOtros;
     }
 }

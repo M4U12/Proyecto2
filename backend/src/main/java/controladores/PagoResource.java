@@ -2,6 +2,7 @@ package controladores;
 
 import dao.PagoDAO;
 import dao.PrestamoDAO;
+import dto.EstadoCuentaDTO;
 import dto.PagoRequestDTO;
 import dto.PagoResponseDTO;
 import enums.ConceptoPago;
@@ -178,7 +179,7 @@ public class PagoResource {
                         .type(MediaType.TEXT_PLAIN).build();
             }
 
-            // Revisar colegiaturas e inscripción
+            // revisar colegiaturas e inscripción
             String mensajeDeuda = pagoDAO.verificarSolvenciaEstudiante(idEstudiante, idCiclo);
             if (!mensajeDeuda.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -199,6 +200,21 @@ public class PagoResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Error al procesar la solvencia: " + e.getMessage())
                     .type(MediaType.TEXT_PLAIN).build();
+        }
+    }
+    
+    @GET
+    @Path("/{idEstudiante}/estado-cuenta/{idCiclo}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response consultarEstadoCuenta(@PathParam("idEstudiante") int idEstudiante, @PathParam("idCiclo") int idCiclo) {
+        try {
+            EstadoCuentaDTO estadoCuenta = pagoDAO.obtenerEstadoCuenta(idEstudiante, idCiclo);
+            return Response.ok(estadoCuenta).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"Error al obtener estado de cuenta: " + e.getMessage() + "\"}")
+                    .build();
         }
     }
 }

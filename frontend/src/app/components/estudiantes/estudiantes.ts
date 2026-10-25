@@ -69,7 +69,7 @@ export class Estudiantes implements OnInit {
         window.open(fileURL, '_blank');
       },
       error: (err: any) => {
-        // Extraemos el texto del Blob que devuelve Angular
+        // Extraeel texto del Blob que devuelve Angular
         if (err.error instanceof Blob) {
           err.error.text().then((mensajeDeuda: string) => {
              alert("NO SE PUEDE EMITIR SOLVENCIA:\n\n" + mensajeDeuda);

@@ -1,0 +1,87 @@
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-wallet2 me-2"></i>Mi Estado de Cuenta
+  </h4>
+
+  <!-- Pantalla de Carga -->
+  <div *ngIf="!estadoCuenta" class="text-center text-white-50 my-5">
+    <div class="spinner-border spinner-border-sm me-2"></div> Cargando información financiera...
+  </div>
+
+  <!-- Contenido del Estado de Cuenta -->
+  <div *ngIf="estadoCuenta">
+    
+    <!-- Estado de Inscripción -->
+    <div class="p-3 mb-4 rounded d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+      <div>
+        <h6 class="text-white mb-1">Inscripción Anual</h6>
+        <p class="text-white-50 small mb-0">Requisito obligatorio para mantener la calidad de estudiante activo.</p>
+      </div>
+      <span class="badge px-3 py-2 text-uppercase tracking-wide" 
+            [ngClass]="estadoCuenta.inscripcionPagada ? 'bg-success' : 'bg-danger'">
+        <i class="bi me-1" [ngClass]="estadoCuenta.inscripcionPagada ? 'bi-check-circle' : 'bi-x-circle'"></i>
+        {{ estadoCuenta.inscripcionPagada ? 'Pagada' : 'Pendiente' }}
+      </span>
+    </div>
+
+    <!-- Tabla de Colegiaturas -->
+    <h5 class="text-white fw-light mb-3"><i class="bi bi-calendar-check me-2"></i>Historial de Colegiaturas</h5>
+    <div class="table-responsive">
+      <table class="table glass-table text-white mb-0">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Estado</th>
+            <th>Monto</th>
+            <th>Fecha de Pago</th>
+            <th>No. Factura</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mes of estadoCuenta.colegiaturas">
+            <td class="fw-bold text-white-50">{{ mes.nombreMes }}</td>
+            <td>
+              <span class="badge text-uppercase"
+                    [ngClass]="{
+                      'bg-success': mes.estado === 'PAGADO',
+                      'bg-warning text-dark': mes.estado === 'PENDIENTE',
+                      'bg-danger': mes.estado === 'ATRASADO'
+                    }">
+                {{ mes.estado }}
+              </span>
+            </td>
+            <td>{{ mes.monto ? ('Q ' + mes.monto) : '--' }}</td>
+            <td>{{ mes.fechaPago ? mes.fechaPago : '--' }}</td>
+            <td class="font-monospace small text-info">{{ mes.numeroFactura ? mes.numeroFactura : '--' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Tabla de Otros Pagos (Extracurriculares y Multas) -->
+    <div *ngIf="estadoCuenta.otrosPagos && estadoCuenta.otrosPagos.length > 0" class="mt-5">
+      <h5 class="text-white fw-light mb-3"><i class="bi bi-plus-circle me-2"></i>Otros Pagos Realizados</h5>
+      <div class="table-responsive">
+        <table class="table glass-table text-white mb-0">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Descripción</th>
+              <th>Monto</th>
+              <th>Fecha de Pago</th>
+              <th>No. Factura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let otro of estadoCuenta.otrosPagos">
+              <td class="fw-bold text-info">{{ otro.concepto === 'MULTA_BIBLIOTECA' ? 'MULTA BIBLIOTECA' : otro.concepto }}</td>
+              <td class="small text-white-50">{{ otro.descripcion ? otro.descripcion : 'Sin descripción' }}</td>
+              <td>Q {{ otro.monto }}</td>
+              <td>{{ otro.fechaPago }}</td>
+              <td class="font-monospace small">{{ otro.numeroFactura }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

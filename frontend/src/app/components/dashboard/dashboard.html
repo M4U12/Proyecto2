@@ -115,6 +115,11 @@
           <i class="bi bi-bank"></i> Tesoreria
         </a>
       </li>
+      <li class="nav-item" *ngIf="rolUsuario === 'ESTUDIANTE'">
+        <a routerLink="/dashboard/estado-cuenta" routerLinkActive="active" class="nav-link glass-nav-link">
+          <i class="bi bi-bank"></i> Estado de Cuenta
+        </a>
+      </li>
     </ul>
 
     <div class="mt-auto">

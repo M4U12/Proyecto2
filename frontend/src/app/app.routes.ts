@@ -25,6 +25,7 @@ import { GestionPrestamos } from './components/gestion-prestamos/gestion-prestam
 import { CatalogoLibros } from './components/catalogo-libros/catalogo-libros';
 import { MisPrestamos } from './components/mis-prestamos/mis-prestamos';
 import { Tesoreria } from './components/tesoreria/tesoreria';
+import { EstadoCuenta } from './components/estado-cuenta/estado-cuenta';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -170,6 +171,12 @@ export const routes: Routes = [
         component: Tesoreria,
         canActivate: [roleGuard],
         data: { role: 'SECRETARIA'}
+      },
+      { 
+        path: 'estado-cuenta', 
+        component: EstadoCuenta,
+        canActivate: [roleGuard],
+        data: { role: 'ESTUDIANTE'}
       },
     ]
   },
