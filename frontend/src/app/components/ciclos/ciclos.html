@@ -10,12 +10,14 @@
     
     <div class="col-md-4">
       <label class="text-white-50 small mb-1">Fecha de Inicio</label>
-      <input type="date" class="form-control glass-input text-white" formControlName="fechaInicio">
+      <input type="date" class="form-control glass-input text-white" formControlName="fechaInicio"
+             [min]="getMinDate(cicloForm)" [max]="getMaxDate(cicloForm)">
     </div>
     
     <div class="col-md-4">
       <label class="text-white-50 small mb-1">Fecha de Fin</label>
-      <input type="date" class="form-control glass-input text-white" formControlName="fechaFin">
+      <input type="date" class="form-control glass-input text-white" formControlName="fechaFin"
+             [min]="getMinDate(cicloForm)" [max]="getMaxDate(cicloForm)">
     </div>
     
     <div class="col-12 text-end mt-4">
@@ -111,12 +113,14 @@
           
           <div class="col-md-4">
             <label class="text-white-50 small mb-1">Fecha de Inicio</label>
-            <input type="date" class="form-control glass-input text-white" formControlName="fechaInicio">
+            <input type="date" class="form-control glass-input text-white" formControlName="fechaInicio"
+                   [min]="getMinDate(cicloEditForm)" [max]="getMaxDate(cicloEditForm)">
           </div>
           
           <div class="col-md-4">
             <label class="text-white-50 small mb-1">Fecha de Fin</label>
-            <input type="date" class="form-control glass-input text-white" formControlName="fechaFin">
+            <input type="date" class="form-control glass-input text-white" formControlName="fechaFin"
+                   [min]="getMinDate(cicloEditForm)" [max]="getMaxDate(cicloEditForm)">
           </div>
         </form>
       </div>

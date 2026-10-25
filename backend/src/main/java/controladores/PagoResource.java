@@ -1,12 +1,15 @@
 package controladores;
 
 import dao.PagoDAO;
+import dao.PrestamoDAO;
 import dto.PagoRequestDTO;
+import dto.PagoResponseDTO;
 import enums.ConceptoPago;
 import excepciones.BDException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import seguridad.Secured;
 
 @Path("/pagos")
@@ -122,6 +125,80 @@ public class PagoResource {
         } catch (BDException e) {
             int status = e.getMessage().contains("ya está registrado") ? 409 : 500;
             return Response.status(status).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/historial")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response obtenerHistorial(@QueryParam("pagina") @DefaultValue("1") int pagina,
+                                     @QueryParam("limite") @DefaultValue("10") int limite) {
+        try {
+            List<PagoResponseDTO> historial = pagoDAO.listarPagos(pagina, limite);
+            return Response.ok(historial).build();
+        } catch (BDException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+    
+    @GET
+    @Path("/{numeroFactura}/pdf")
+    @Produces("application/pdf")
+    public Response descargarFacturaPdf(@PathParam("numeroFactura") String numeroFactura) {
+        try {
+            servicios.ReporteService reporteService = new servicios.ReporteService();
+            byte[] pdfBytes = reporteService.generarFacturaPdf(numeroFactura);
+
+            //inline permite que el navegador abra el PDF en una pestaña nueva
+            return Response.ok(pdfBytes)
+                    .header("Content-Disposition", "inline; filename=\"Factura_" + numeroFactura + ".pdf\"")
+                    .build();
+                    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al compilar el PDF: " + e.getMessage())
+                    .type("text/plain")
+                    .build();
+        }
+    }
+    
+    @GET
+    @Path("/{idEstudiante}/solvencia/{idCiclo}")
+    @Produces("application/pdf")
+    public Response generarSolvencia(@PathParam("idEstudiante") int idEstudiante, @PathParam("idCiclo") int idCiclo) {
+        try {
+            PrestamoDAO prestamoDAO = new PrestamoDAO();
+            boolean tieneMultas = prestamoDAO.tieneMorasOPendientes(idEstudiante, null);
+            
+            if (tieneMultas) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("El estudiante tiene libros sin devolver o multas de biblioteca pendientes.")
+                        .type(MediaType.TEXT_PLAIN).build();
+            }
+
+            // Revisar colegiaturas e inscripción
+            String mensajeDeuda = pagoDAO.verificarSolvenciaEstudiante(idEstudiante, idCiclo);
+            if (!mensajeDeuda.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(mensajeDeuda)
+                        .type(MediaType.TEXT_PLAIN).build();
+            }
+
+            // si llega hasta aquí, está solvente
+            servicios.ReporteService reporteService = new servicios.ReporteService();
+            byte[] pdfBytes = reporteService.generarSolvenciaPdf(idEstudiante, idCiclo); 
+            
+            return Response.ok(pdfBytes)
+                    .header("Content-Disposition", "inline; filename=\"Solvencia_" + idEstudiante + ".pdf\"")
+                    .build();
+                    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al procesar la solvencia: " + e.getMessage())
+                    .type(MediaType.TEXT_PLAIN).build();
         }
     }
 }

@@ -9,6 +9,7 @@ import seguridad.Secured;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +28,20 @@ public class CicloLectivoResource {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"El año lectivo debe ser un número positivo y mayor o igual a 2026.\"}").build();
         }
+        
+        LocalDate inicio = request.getFechaInicio();
+        LocalDate fin = request.getFechaFin();
+
+        if (inicio.isAfter(fin) || inicio.isEqual(fin)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"La fecha de inicio debe ser estrictamente anterior a la fecha de fin.\"}").build();
+        }
+
+        if (inicio.getYear() != request.getAnio() || fin.getYear() != request.getAnio()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Las fechas ingresadas no corresponden al año lectivo " + request.getAnio() + ".\"}").build();
+        }
+        
         try {
             CicloLectivo nuevoCiclo = new CicloLectivo();
             nuevoCiclo.setAnio(request.getAnio());
@@ -137,6 +152,19 @@ public class CicloLectivoResource {
         if (request.getAnio() < 2026) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"El año lectivo debe ser un número positivo y mayor o igual a 2026.\"}").build();
+        }
+        
+        LocalDate inicio = request.getFechaInicio();
+        LocalDate fin = request.getFechaFin();
+
+        if (inicio.isAfter(fin) || inicio.isEqual(fin)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"La fecha de inicio debe ser estrictamente anterior a la fecha de fin.\"}").build();
+        }
+
+        if (inicio.getYear() != request.getAnio() || fin.getYear() != request.getAnio()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Las fechas ingresadas no corresponden al año lectivo " + request.getAnio() + ".\"}").build();
         }
         try {
             CicloLectivo ciclo = new CicloLectivo();

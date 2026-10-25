@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="Factura_CodeNSchool" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    
+    <parameter name="NUMERO_FACTURA" class="java.lang.String"/>
+    
+    <queryString language="sql">
+        <![CDATA[
+        SELECT p.numero_factura, p.monto, p.fecha_pago, p.concepto, p.descripcion,
+               COALESCE(e.nombres, emp.nombres) AS nombres,
+               COALESCE(e.apellidos, emp.apellidos) AS apellidos
+        FROM pago p
+        LEFT JOIN estudiante e ON p.id_estudiante = e.id_estudiante
+        LEFT JOIN empleado emp ON p.id_empleado = emp.id_empleado
+        WHERE p.numero_factura = $P{NUMERO_FACTURA}
+        ]]>
+    </queryString>
+    
+    <field name="numero_factura" class="java.lang.String"/>
+    <field name="monto" class="java.math.BigDecimal"/>
+    <field name="fecha_pago" class="java.sql.Date"/>
+    <field name="concepto" class="java.lang.String"/>
+    <field name="descripcion" class="java.lang.String"/>
+    <field name="nombres" class="java.lang.String"/>
+    <field name="apellidos" class="java.lang.String"/>
+    
+    <title>
+        <band height="72">
+            <frame>
+                <reportElement mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699"/>
+                <staticText>
+                    <reportElement x="20" y="20" width="279" height="43" forecolor="#FFFFFF"/>
+                    <textElement>
+                        <font size="34" isBold="true"/>
+                    </textElement>
+                    <text><![CDATA[Code_n_School]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="395" y="43" width="180" height="20" forecolor="#FFFFFF"/>
+                    <textElement textAlignment="Right">
+                        <font size="14" isBold="false"/>
+                    </textElement>
+                    <text><![CDATA[Factura Oficial]]></text>
+                </staticText>
+            </frame>
+        </band>
+    </title>
+    
+    <pageHeader>
+        <band height="13"/>
+    </pageHeader>
+    
+    <detail>
+        <band height="150">
+            <staticText>
+                <reportElement x="0" y="0" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Nombres:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="20" width="140" height="30"/>
+                <textFieldExpression><![CDATA[$F{nombres}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="150" y="0" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Apellidos:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="150" y="20" width="130" height="30"/>
+                <textFieldExpression><![CDATA[$F{apellidos}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="290" y="0" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[No. Factura:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="290" y="20" width="100" height="30"/>
+                <textFieldExpression><![CDATA[$F{numero_factura}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="400" y="0" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Monto Cobrado:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="20" width="100" height="30" forecolor="#006699"/>
+                <textElement><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["Q " + $F{monto}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="79" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Fecha de Pago:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="100" width="140" height="30"/>
+                <textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fecha_pago})]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="150" y="79" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Concepto:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="150" y="100" width="130" height="30"/>
+                <textFieldExpression><![CDATA[$F{concepto}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="290" y="79" width="100" height="21" forecolor="#666666"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Descripción:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="290" y="100" width="245" height="30"/>
+                <textFieldExpression><![CDATA[$F{descripcion} == null ? "Sin descripción" : $F{descripcion}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    
+    <pageFooter>
+        <band height="17"/>
+    </pageFooter>
+</jasperReport>

@@ -89,8 +89,6 @@ public class PersonalResource {
 
             if (cambiado) {
                 try {
-                    // Nota: Si aún no tienes este método en UsuarioDAO, tendrás que crearlo
-                    // (Te lo adjunto más abajo).
                     usuarioDAO.cambiarEstadoPorEmpleado(idEmpleado, request.isEstado());
                 } catch (Exception e) {
                     System.err.println("Aviso: El empleado no tenía usuario o falló la actualización de cuenta: " + e.getMessage());

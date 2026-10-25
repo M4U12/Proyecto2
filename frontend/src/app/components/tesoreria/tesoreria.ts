@@ -13,8 +13,7 @@ import { EstudianteService } from '../../services/estudiante.service';
   templateUrl: './tesoreria.html'
 })
 export class Tesoreria implements OnInit {
-  // Control de pestañas
-  pestanaActiva: string = 'cobros'; // 'cobros' | 'multas' | 'anulaciones'
+  pestanaActiva: string = 'cobros'; 
 
   // Variables Multas
   multas: any[] = [];
@@ -23,7 +22,6 @@ export class Tesoreria implements OnInit {
   multaSeleccionada: any = null;
   numeroFacturaCobro: string = '';
   
-  // Variables de Ciclo
   idCicloActivo: number = 0;
   anioCicloActivo: number = 0;
 
@@ -31,13 +29,11 @@ export class Tesoreria implements OnInit {
   facturaAnular: string = '';
   motivoAnulacion: string = '';
 
-  // --- Variables Cobros Académicos ---
+  // Variables Cobros Académicos
   codigoBusquedaCobro: string = '';
   nombreBusquedaCobro: string = '';
   resultadosNombreCobro: any[] = [];
   estudianteCobro: any = null;
-
-  // Nuevas variables dinámicas
   conceptoCobro: string = 'INSCRIPCION';
   mesColegiatura: number | null = null;
   facturaAcademica: string = '';
@@ -51,6 +47,11 @@ export class Tesoreria implements OnInit {
     { id: 10, nombre: 'Octubre' }, { id: 11, nombre: 'Noviembre' }, { id: 12, nombre: 'Diciembre' }
   ];
 
+  // Variables Historial (NUEVO)
+  historialPagos: any[] = [];
+  paginaHistorial: number = 1;
+  limiteHistorial: number = 10;
+
   constructor(
     private prestamoService: PrestamoService,
     private cicloService: CicloService,
@@ -62,6 +63,7 @@ export class Tesoreria implements OnInit {
   ngOnInit(): void {
     this.cargarCicloActivo();
     this.cargarMultas();
+    this.cargarHistorial();
   }
 
   cambiarPestana(pestana: string) {
@@ -74,10 +76,45 @@ export class Tesoreria implements OnInit {
         const ciclo = res.find((c: any) => c.estado === 'ABIERTO');
         if (ciclo) {
           this.idCicloActivo = ciclo.idCiclo;
-          this.anioCicloActivo = ciclo.anio; // GUARDA EL AÑO
+          this.anioCicloActivo = ciclo.anio; 
         }
+      }
+    });
+  }
+
+  // --- HISTORIAL DE PAGOS ---
+  cargarHistorial() {
+    this.pagoService.obtenerHistorial(this.paginaHistorial, this.limiteHistorial).subscribe({
+      next: (datos: any) => {
+        this.historialPagos = datos;
+        this.cdr.detectChanges();
       },
-      error: (err: any) => console.error('Error al cargar ciclo:', err)
+      error: (err: any) => console.error('Error al cargar historial:', err)
+    });
+  }
+
+  cambiarPaginaHistorial(direccion: number) {
+    if (direccion === -1 && this.paginaHistorial > 1) {
+      this.paginaHistorial--;
+      this.cargarHistorial();
+    } else if (direccion === 1 && this.historialPagos.length === this.limiteHistorial) {
+      this.paginaHistorial++;
+      this.cargarHistorial();
+    }
+  }
+
+  imprimirFactura(numeroFactura: string) {
+    this.pagoService.descargarFacturaPdf(numeroFactura).subscribe({
+      next: (blob: Blob) => {
+        // Crear un objeto URL con el PDF recibido
+        const fileURL = URL.createObjectURL(blob);
+        // Abrirlo en una nueva pestaña
+        window.open(fileURL, '_blank');
+      },
+      error: (err: any) => {
+        console.error(err);
+        alert('Error al generar la factura en PDF.');
+      }
     });
   }
 
@@ -98,8 +135,7 @@ export class Tesoreria implements OnInit {
       this.multasFiltradas = this.multas;
     } else {
       this.multasFiltradas = this.multas.filter(m => 
-        m.nombreSolicitante.toLowerCase().includes(termino) ||
-        m.tituloLibro.toLowerCase().includes(termino)
+        m.nombreSolicitante.toLowerCase().includes(termino) || m.tituloLibro.toLowerCase().includes(termino)
       );
     }
   }
@@ -118,6 +154,7 @@ export class Tesoreria implements OnInit {
         alert('Pago registrado exitosamente.');
         this.terminoBusqueda = ''; 
         this.cargarMultas(); 
+        this.cargarHistorial(); 
       },
       error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo procesar el pago.'))
     });
@@ -125,10 +162,7 @@ export class Tesoreria implements OnInit {
 
   // --- ANULACIÓN ---
   ejecutarAnulacion() {
-    if (!this.facturaAnular.trim() || !this.motivoAnulacion.trim()) {
-      alert('Debes ingresar la factura y el motivo.');
-      return;
-    }
+    if (!this.facturaAnular.trim() || !this.motivoAnulacion.trim()) return;
 
     if (confirm(`¿Estás seguro de anular la factura ${this.facturaAnular.toUpperCase()}? Esta acción no se puede deshacer.`)) {
       this.pagoService.anularFactura(this.facturaAnular.trim(), this.motivoAnulacion.trim()).subscribe({
@@ -137,6 +171,7 @@ export class Tesoreria implements OnInit {
           this.facturaAnular = '';
           this.motivoAnulacion = '';
           this.cargarMultas(); 
+          this.cargarHistorial(); 
         },
         error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo anular la factura.'))
       });
@@ -171,19 +206,14 @@ export class Tesoreria implements OnInit {
         this.montoAcademico = null;
         this.cdr.detectChanges();
       },
-      error: (err: any) => alert('Estudiante no encontrado.')
+      error: () => alert('Estudiante no encontrado.')
     });
   }
 
   alCambiarConcepto() {
-    if (this.conceptoCobro === 'INSCRIPCION') {
-        this.descripcionAcademica = 'Pago de inscripción anual';
-    } else if (this.conceptoCobro === 'COLEGIATURA') {
-        this.descripcionAcademica = 'Pago de colegiatura mensual';
-    } else {
-        this.descripcionAcademica = 'Pago de actividad extracurricular';
-        this.mesColegiatura = null; 
-    }
+    if (this.conceptoCobro === 'INSCRIPCION') this.descripcionAcademica = 'Pago de inscripción anual';
+    else if (this.conceptoCobro === 'COLEGIATURA') this.descripcionAcademica = 'Pago de colegiatura mensual';
+    else { this.descripcionAcademica = 'Pago de actividad extracurricular'; this.mesColegiatura = null; }
   }
 
   limpiarCobro() {
@@ -197,17 +227,13 @@ export class Tesoreria implements OnInit {
   }
 
   registrarCobro() {
-    if (!this.facturaAcademica.trim() || !this.montoAcademico || this.idCicloActivo === 0 || !this.estudianteCobro) {
-      alert('Faltan datos obligatorios para registrar el pago.');
-      return;
-    }
-
+    if (!this.facturaAcademica.trim() || !this.montoAcademico || this.idCicloActivo === 0 || !this.estudianteCobro) return;
     if (this.conceptoCobro === 'COLEGIATURA' && (!this.mesColegiatura || this.mesColegiatura < 1)) {
         alert('Debes seleccionar el mes correspondiente a la colegiatura.');
         return;
     }
 
-    const payload = {
+    const inf = {
       numeroFactura: this.facturaAcademica,
       idEstudiante: this.estudianteCobro.idEstudiante,
       idCiclo: this.idCicloActivo,
@@ -217,16 +243,16 @@ export class Tesoreria implements OnInit {
       mesColegiatura: this.conceptoCobro === 'COLEGIATURA' ? Number(this.mesColegiatura) : null
     };
 
-    // Ruteo dinámico: Si es inscripción llama al validador estricto, sino al general
-    const peticionBackend$ = this.conceptoCobro === 'INSCRIPCION' 
-        ? this.pagoService.cobrarInscripcion(payload)
-        : this.pagoService.cobrarPagoGeneral(payload);
+    const peticion = this.conceptoCobro === 'INSCRIPCION' 
+        ? this.pagoService.cobrarInscripcion(inf)
+        : this.pagoService.cobrarPagoGeneral(inf);
 
-    peticionBackend$.subscribe({
+    peticion.subscribe({
       next: () => {
         alert(`¡Pago de ${this.conceptoCobro.toLowerCase()} registrado exitosamente!`);
         this.limpiarCobro();
         this.codigoBusquedaCobro = '';
+        this.cargarHistorial();
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -235,4 +261,5 @@ export class Tesoreria implements OnInit {
       }
     });
   }
+
 }

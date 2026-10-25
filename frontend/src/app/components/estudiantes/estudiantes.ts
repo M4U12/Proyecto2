@@ -1,6 +1,8 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { EstudianteService } from '../../services/estudiante.service';
+import { CicloService } from '../../services/ciclo.service';
+import { PagoService } from '../../services/pago.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,7 +11,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './estudiantes.html'
 })
-export class Estudiantes {
+export class Estudiantes implements OnInit {
   estudianteForm: FormGroup;
   
   codigoBusqueda: string = '';
@@ -19,10 +21,14 @@ export class Estudiantes {
   modoEdicion: boolean = false;
   resultadosNombre: any[] = [];
   busquedaSinResultados: boolean = false;
+  
+  idCicloActivo: number = 0;
 
   constructor(
     private fb: FormBuilder,
     private estudianteService: EstudianteService,
+    private cicloService: CicloService,
+    private pagoService: PagoService,
     private cdr: ChangeDetectorRef
   ) {
     this.estudianteForm = this.fb.group({
@@ -33,6 +39,45 @@ export class Estudiantes {
       informacionMedica: ['Ninguna'],
       nombreEncargado: ['', Validators.required],
       contactoEncargado: ['', [Validators.required, Validators.minLength(8)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.cargarCicloActivo();
+  }
+
+  cargarCicloActivo() {
+    this.cicloService.getCiclos(1, 100).subscribe({
+      next: (res: any) => {
+        const ciclo = res.find((c: any) => c.estado === 'ABIERTO');
+        if (ciclo) {
+          this.idCicloActivo = ciclo.idCiclo;
+        }
+      }
+    });
+  }
+
+  generarSolvencia() {
+    if (!this.expedienteActual || this.idCicloActivo === 0) {
+      alert("No se puede generar la solvencia. Asegúrate de tener un alumno seleccionado y un ciclo activo.");
+      return;
+    }
+
+    this.pagoService.descargarSolvenciaPdf(this.expedienteActual.idEstudiante, this.idCicloActivo).subscribe({
+      next: (blob: Blob) => {
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+      },
+      error: (err: any) => {
+        // Extraemos el texto del Blob que devuelve Angular
+        if (err.error instanceof Blob) {
+          err.error.text().then((mensajeDeuda: string) => {
+             alert("NO SE PUEDE EMITIR SOLVENCIA:\n\n" + mensajeDeuda);
+          });
+        } else {
+           alert("Error al verificar la solvencia del estudiante.");
+        }
+      }
     });
   }
 
@@ -67,7 +112,7 @@ export class Estudiantes {
     this.codigoBusqueda = codigo;
     this.resultadosNombre = []; 
     this.nombreBusqueda = '';   
-    this.cdr.detectChanges(); // oculta la tabla al instante
+    this.cdr.detectChanges();
     this.buscarExpediente();    
   }
 
@@ -159,7 +204,6 @@ export class Estudiantes {
     this.estudianteForm.reset({ informacionMedica: 'Ninguna' });
     this.cdr.detectChanges();
   }
-
 
   soloNumeros(event: any): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;

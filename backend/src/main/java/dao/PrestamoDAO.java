@@ -228,7 +228,7 @@ public class PrestamoDAO {
         }
     }
 
-    private boolean tieneMorasOPendientes(Integer idEstudiante, Integer idEmpleado) throws BDException {
+    public boolean tieneMorasOPendientes(Integer idEstudiante, Integer idEmpleado) throws BDException {
         // busca prestamos activos vencidos O multas sin pagar
         String query = "SELECT COUNT(*) AS moras FROM prestamo WHERE "
                 + "(id_estudiante = ? OR id_empleado = ?) AND "

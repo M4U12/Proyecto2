@@ -102,7 +102,7 @@ public class GradoDAO {
 
     public List<Grado> listarConSeccionesPorCiclo(int idCiclo) throws BDException {
         List<Grado> listaGrados = new ArrayList<>();
-        String queryGrado = "SELECT DISTINCT g.* FROM grado g " +
+        String queryGrado = "SELECT DISTINCT g.* FROM grado g " + //si una fila es igual a otra, solo la muestra una vez
                     "INNER JOIN curriculo c ON g.id_grado = c.id_grado " +
                     "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel " +
                     "WHERE c.id_ciclo = ? AND n.estado = true";

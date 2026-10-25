@@ -21,4 +21,16 @@ export class PagoService {
   cobrarPagoGeneral(datos: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/general`, datos);
   }
+
+  obtenerHistorial(pagina: number, limite: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/historial?pagina=${pagina}&limite=${limite}`);
+  }
+
+  descargarFacturaPdf(numeroFactura: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${numeroFactura}/pdf`, { responseType: 'blob' });
+  }
+
+  descargarSolvenciaPdf(idEstudiante: number, idCiclo: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${idEstudiante}/solvencia/${idCiclo}`, { responseType: 'blob' });
+  }
 }

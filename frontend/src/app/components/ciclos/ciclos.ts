@@ -65,7 +65,23 @@ export class Ciclos implements OnInit {
   // Guarda nuevo ciclo
   onSubmit() {
     if (this.cicloForm.valid) {
-      this.cicloService.crearCiclo(this.cicloForm.value).subscribe({
+      const formulario = this.cicloForm.value;
+      const anioLectivo = Number(formulario.anio);
+      const anioInicio = Number(formulario.fechaInicio.substring(0, 4));
+      const anioFin = Number(formulario.fechaFin.substring(0, 4));
+
+      if (formulario.fechaInicio >= formulario.fechaFin) {
+        alert('Error: La fecha de inicio debe ser anterior a la fecha de finalización.');
+        return;
+      }
+
+      // validar coincidencia de año
+      if (anioInicio !== anioLectivo || anioFin !== anioLectivo) {
+        alert(`Error: Las fechas seleccionadas deben pertenecer al año lectivo ${anioLectivo}.`);
+        return;
+      }
+
+      this.cicloService.crearCiclo(formulario).subscribe({
         next: (respuesta) => {
           alert('Ciclo creado exitosamente');
           this.cicloForm.reset();
@@ -108,9 +124,22 @@ export class Ciclos implements OnInit {
 
     const formularioEditado = this.cicloEditForm.getRawValue();
     const id = formularioEditado.idCiclo;
+    const anioLectivo = Number(formularioEditado.anio);
+    const anioInicio = Number(formularioEditado.fechaInicio.substring(0, 4));
+    const anioFin = Number(formularioEditado.fechaFin.substring(0, 4));
+
+    if (formularioEditado.fechaInicio >= formularioEditado.fechaFin) {
+      alert('Error: La fecha de inicio debe ser anterior a la fecha de finalización.');
+      return;
+    }
+
+    if (anioInicio !== anioLectivo || anioFin !== anioLectivo) {
+      alert(`Error: Las fechas seleccionadas deben pertenecer al año lectivo ${anioLectivo}.`);
+      return;
+    }
 
     const inf = {
-      anio: Number(formularioEditado.anio),
+      anio: anioLectivo,
       fechaInicio: formularioEditado.fechaInicio,
       fechaFin: formularioEditado.fechaFin
     };
@@ -141,5 +170,17 @@ export class Ciclos implements OnInit {
         error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo cerrar')) 
       });
     }
+  }
+
+  // Genera la fecha mínima (1 de enero del año ingresado)
+  getMinDate(formulario: FormGroup): string {
+    const anio = formulario.get('anio')?.value;
+    return (anio && anio >= 2026) ? `${anio}-01-01` : '';
+  }
+
+  // Genera la fecha máxima (31 de diciembre del año ingresado)
+  getMaxDate(formulario: FormGroup): string {
+    const anio = formulario.get('anio')?.value;
+    return (anio && anio >= 2026) ? `${anio}-10-31` : ''; 
   }
 }

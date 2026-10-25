@@ -7,6 +7,7 @@ import excepciones.BDException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.format.DateTimeParseException;
 import seguridad.Secured;
 
 @Path("/asistencias")
@@ -94,7 +95,7 @@ public class AsistenciaResource {
             java.time.LocalDate fecha = java.time.LocalDate.parse(fechaStr);
             return Response.ok(asistenciaDAO.consultarAsistenciaPorFecha(idAsignacion, fecha)).build();
             
-        } catch (java.time.format.DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
              return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"Formato de fecha inválido. Use YYYY-MM-DD.\"}").build();
         } catch (BDException e) {

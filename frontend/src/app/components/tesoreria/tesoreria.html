@@ -35,6 +35,17 @@
         <i class="bi bi-x-octagon me-1 text-danger"></i> Anular Facturas
       </a>
     </li>
+    <!-- PESTAÑA HISTORIAL -->
+    <li class="nav-item">
+      <a class="nav-link text-white" 
+         [class.active]="pestanaActiva === 'historial'" 
+         [class.bg-dark]="pestanaActiva === 'historial'" 
+         [class.border-secondary]="pestanaActiva === 'historial'"
+         [class.border-bottom-0]="pestanaActiva === 'historial'"
+         (click)="cambiarPestana('historial')" style="cursor: pointer;">
+        <i class="bi bi-clock-history me-1 text-info"></i> Historial de Cobros
+      </a>
+    </li>
   </ul>
 
   <!-- PESTAÑA 1: COBROS ACADÉMICOS -->
@@ -208,6 +219,64 @@
       <div class="text-end">
         <button class="btn btn-danger glass-btn rounded-pill px-4 fw-bold" (click)="ejecutarAnulacion()" [disabled]="!facturaAnular.trim() || !motivoAnulacion.trim()">
           <i class="bi bi-trash3 me-1"></i> Anular Factura
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 4: HISTORIAL DE COBROS  -->
+  <div *ngIf="pestanaActiva === 'historial'">
+    <div class="table-responsive border border-secondary rounded bg-dark bg-opacity-25 p-3">
+      <table class="table glass-table text-white mb-0">
+        <thead>
+          <tr>
+            <th>Factura</th>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Deudor</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="historialPagos.length === 0">
+            <td colspan="7" class="text-center text-white-50 py-4">No hay pagos registrados en el sistema.</td>
+          </tr>
+          <tr *ngFor="let pago of historialPagos" class="align-middle">
+            <td class="fw-bold">{{ pago.numeroFactura }}</td>
+            <td>{{ pago.fechaPago }}</td>
+            <td>
+              <span class="small fw-bold">{{ pago.concepto }}</span><br>
+              <span class="text-white-50" style="font-size: 0.75rem;">{{ pago.descripcion }}</span>
+            </td>
+            <td>
+              <span class="d-block">{{ pago.nombreDeudor }}</span>
+              <span class="badge" [ngClass]="pago.tipoDeudor === 'ESTUDIANTE' ? 'bg-info text-dark' : 'bg-primary'">{{ pago.tipoDeudor }}</span>
+            </td>
+            <td class="text-success fw-bold">Q{{ pago.monto | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" [ngClass]="pago.estado === 'ACTIVO' ? 'bg-success' : 'bg-danger'">{{ pago.estado }}</span>
+            </td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-info rounded-pill px-3 shadow" 
+                      (click)="imprimirFactura(pago.numeroFactura)" 
+                      [disabled]="pago.estado === 'ANULADO'">
+                <i class="bi bi-printer"></i> Imprimir
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Paginación -->
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <button class="btn btn-sm btn-outline-secondary" (click)="cambiarPaginaHistorial(-1)" [disabled]="paginaHistorial === 1">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </button>
+        <span class="text-white-50 small">Página {{ paginaHistorial }}</span>
+        <button class="btn btn-sm btn-outline-secondary" (click)="cambiarPaginaHistorial(1)" [disabled]="historialPagos.length < limiteHistorial">
+          Siguiente <i class="bi bi-chevron-right"></i>
         </button>
       </div>
     </div>
