@@ -28,6 +28,7 @@ import { Tesoreria } from './components/tesoreria/tesoreria';
 import { EstadoCuenta } from './components/estado-cuenta/estado-cuenta';
 import { ConfiguracionService } from './services/configuracion.service';
 import { Configuraciones } from './components/configuraciones/configuraciones';
+import { Reportes } from './components/reportes/reportes';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -185,6 +186,12 @@ export const routes: Routes = [
         component: Configuraciones,
         canActivate: [roleGuard],
         data: { role: 'ADMINISTRADOR'}
+      },
+      { 
+        path: 'reportes', 
+        component: Reportes,
+        canActivate: [roleGuard],
+        data: { roles: ['SECRETARIA', 'ADMINISTRADOR', 'SUPER_ADMIN', 'BIBLIOTECARIO'] }
       },
     ]
   },

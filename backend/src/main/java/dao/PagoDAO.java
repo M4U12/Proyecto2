@@ -227,22 +227,34 @@ public class PagoDAO {
                 + "WHERE id_estudiante = ? AND id_ciclo = ? "
                 + "AND concepto = 'COLEGIATURA' AND estado = 'ACTIVO'";
 
-        try (Connection conn = dbconection.DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
+        try (Connection conn = dbconection.DBConnectionSingleton.getInstance().getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(query)) {
 
             ps.setInt(1, idEstudiante);
             ps.setInt(2, idCiclo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 int ultimoMesPagado = 0;
+                
                 if (rs.next()) {
                     ultimoMesPagado = rs.getInt("ultimo_mes"); // retorna 0 si es null
+                    if (rs.wasNull() || ultimoMesPagado < 0) {
+                        ultimoMesPagado = 0;
+                    }
                 }
 
                 if (ultimoMesPagado < mesExigible) {
                     // calcula cual es el mes que le toca pagar
                     int mesDeuda = ultimoMesPagado + 1;
-                    String[] nombresMeses = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre"};
-                    return "Debe la colegiatura del mes de " + nombresMeses[mesDeuda] + ".";
+                    
+                    String[] nombresMeses = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+                    
+                    // Doble validación de seguridad
+                    if (mesDeuda > 0 && mesDeuda <= 12) {
+                        return "Debe la colegiatura del mes " + nombresMeses[mesDeuda] + ".";
+                    } else {
+                        return "Debe una colegiatura atrasada.";
+                    }
                 }
             }
         } catch (SQLException e) {

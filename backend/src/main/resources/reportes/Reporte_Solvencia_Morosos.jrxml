@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+              name="Reporte_Solvencia_Morosos" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+    
+    <parameter name="GRADO_SECCION" class="java.lang.String"/>
+    <parameter name="CICLO_ESCOLAR" class="java.lang.String"/>
+    <parameter name="FECHA_GENERACION" class="java.lang.String"/>
+
+    <field name="codigoPersonal" class="java.lang.String"/>
+    <field name="nombreCompleto" class="java.lang.String"/>
+    <field name="estadoFinanciero" class="java.lang.String"/>
+    <field name="detalleDeuda" class="java.lang.String"/>
+
+    <title>
+        <band height="90">
+            <frame>
+                <reportElement mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#1A202C"/>
+                <staticText>
+                    <reportElement x="20" y="15" width="300" height="35" forecolor="#FFFFFF"/>
+                    <textElement>
+                        <font size="24" isBold="true"/>
+                    </textElement>
+                    <text><![CDATA[Coden School]]></text>
+                </staticText>
+                <staticText>
+                    <reportElement x="20" y="50" width="300" height="20" forecolor="#A0AEC0"/>
+                    <textElement>
+                        <font size="14"/>
+                    </textElement>
+                    <text><![CDATA[Reporte de Solvencia y Morosidad]]></text>
+                </staticText>
+                
+                <textField>
+                    <reportElement x="350" y="15" width="225" height="20" forecolor="#FFFFFF"/>
+                    <textElement textAlignment="Right">
+                        <font size="12" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Grado: " + $P{GRADO_SECCION}]]></textFieldExpression>
+                </textField>
+                <textField>
+                    <reportElement x="350" y="35" width="225" height="20" forecolor="#A0AEC0"/>
+                    <textElement textAlignment="Right">
+                        <font size="11"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Ciclo Escolar: " + $P{CICLO_ESCOLAR}]]></textFieldExpression>
+                </textField>
+                <textField>
+                    <reportElement x="350" y="55" width="225" height="20" forecolor="#A0AEC0"/>
+                    <textElement textAlignment="Right">
+                        <font size="10"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Generado: " + $P{FECHA_GENERACION}]]></textFieldExpression>
+                </textField>
+            </frame>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="30">
+            <staticText>
+                <reportElement mode="Opaque" x="0" y="0" width="90" height="30" backcolor="#E2E8F0" forecolor="#2D3748"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#CBD5E0"/></box>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[CÓDIGO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="90" y="0" width="200" height="30" backcolor="#E2E8F0" forecolor="#2D3748"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#CBD5E0"/></box>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[ESTUDIANTE]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="290" y="0" width="80" height="30" backcolor="#E2E8F0" forecolor="#2D3748"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#CBD5E0"/></box>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[ESTADO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="370" y="0" width="185" height="30" backcolor="#E2E8F0" forecolor="#2D3748"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#CBD5E0"/></box>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[DETALLE DE DEUDA]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="25">
+            <textField>
+                <reportElement x="0" y="0" width="90" height="25"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#E2E8F0"/></box>
+                <textElement verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{codigoPersonal}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="90" y="0" width="200" height="25"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#E2E8F0"/></box>
+                <textElement verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{nombreCompleto}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="290" y="0" width="80" height="25"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#E2E8F0"/></box>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{estadoFinanciero}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight">
+                <reportElement x="370" y="0" width="185" height="25"/>
+                <box leftPadding="5"><pen lineWidth="0.5" lineColor="#E2E8F0"/></box>
+                <textElement verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{detalleDeuda}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

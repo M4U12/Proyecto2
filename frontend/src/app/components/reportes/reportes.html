@@ -1,0 +1,174 @@
+<div class="glass-panel p-4 mb-4">
+  <h4 class="text-white fw-light tracking-wide mb-4">
+    <i class="bi bi-bar-chart-fill me-2 text-primary"></i> Centro de Reportes Institucionales
+  </h4>
+
+  <div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: MENÚ DE REPORTES -->
+    <div class="col-md-4 col-lg-3">
+      <div class="list-group bg-dark bg-opacity-25 border border-secondary rounded">
+        
+        <button *ngIf="puedeVerSolventes()"
+                class="list-group-item list-group-item-action border-0 text-white bg-transparent"
+                [class.active-glass]="reporteActivo === 'solventes'"
+                (click)="cambiarReporte('solventes')">
+          <i class="bi bi-person-check me-2 text-success"></i> Solvencia y Morosidad
+        </button>
+
+        <button *ngIf="puedeVerRendimiento()"
+                class="list-group-item list-group-item-action border-0 text-white bg-transparent"
+                [class.active-glass]="reporteActivo === 'rendimiento'"
+                (click)="cambiarReporte('rendimiento')">
+          <i class="bi bi-graph-up-arrow me-2 text-info"></i> Rendimiento Académico 
+        </button>
+
+        <button *ngIf="puedeVerIngresos()"
+                class="list-group-item list-group-item-action border-0 text-white bg-transparent"
+                [class.active-glass]="reporteActivo === 'ingresos'"
+                (click)="cambiarReporte('ingresos')">
+          <i class="bi bi-cash-stack me-2 text-success"></i> Reporte de Ingresos 
+        </button>
+
+        <button *ngIf="puedeVerMora()"
+                class="list-group-item list-group-item-action border-0 text-white bg-transparent"
+                [class.active-glass]="reporteActivo === 'mora'"
+                (click)="cambiarReporte('mora')">
+          <i class="bi bi-book me-2 text-danger"></i> Libros en Mora 
+        </button>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: FORMULARIOS DE CADA REPORTE -->
+    <div class="col-md-8 col-lg-9">
+      <div class="p-4 bg-dark bg-opacity-25 rounded border border-secondary min-vh-50">
+        
+        <!-- FORMULARIO SOLVENTES Y MOROSOS -->
+        <div *ngIf="reporteActivo === 'solventes'">
+          <h5 class="text-white mb-3"><i class="bi bi-person-check text-success me-2"></i> Estudiantes Solventes y Morosos</h5>
+          <p class="text-white-50 small mb-4">Genera un listado consolidado por grado y sección que separa a los estudiantes al día de aquellos con pagos atrasados.</p>
+          
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Ciclo Escolar</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="idCicloSel" (change)="anioCicloSel = $any($event.target).options[$any($event.target).selectedIndex].text; alCambiarCiclo()">
+                <option *ngFor="let c of ciclos" [value]="c.idCiclo" class="text-dark">{{ c.anio }}</option>
+              </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Grado</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="gradoSel" (change)="alCambiarGrado()">
+                <option [ngValue]="null" class="text-dark">Seleccione...</option>
+                <option *ngFor="let g of grados" [ngValue]="g" class="text-dark">{{ g.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Sección</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="seccionSel" [disabled]="!gradoSel">
+                <option [ngValue]="null" class="text-dark">Seleccione...</option>
+                <option *ngFor="let s of secciones" [ngValue]="s" class="text-dark">{{ s.identificador }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button class="btn btn-primary glass-btn rounded-pill px-4" 
+                    (click)="generarReporteSolvencia()" 
+                    [disabled]="!gradoSel || !seccionSel || !idCicloSel || cargando">
+              <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!cargando" class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte PDF
+            </button>
+          </div>
+        </div>
+
+        <!--RENDIMIENTO ACADÉMICO -->
+        <div *ngIf="reporteActivo === 'rendimiento'">
+          <h5 class="text-white mb-3"><i class="bi bi-graph-up-arrow text-info me-2"></i> Rendimiento Académico</h5>
+          <p class="text-white-50 small mb-4">Visualiza los promedios generales y porcentajes de aprobación de manera global por grado o filtrado por sección.</p>
+          
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Ciclo Escolar</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="idCicloSel" (change)="anioCicloSel = $any($event.target).options[$any($event.target).selectedIndex].text; alCambiarCiclo()">
+                <option *ngFor="let c of ciclos" [value]="c.idCiclo" class="text-dark">{{ c.anio }}</option>
+              </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Grado</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="gradoSel" (change)="alCambiarGrado()">
+                <option [ngValue]="null" class="text-dark">Seleccione...</option>
+                <option *ngFor="let g of grados" [ngValue]="g" class="text-dark">{{ g.nombre }}</option>
+              </select>
+            </div>
+
+            <!-- Selector de sección opcional -->
+            <div class="col-md-4">
+              <label class="text-white-50 small mb-1">Sección (Opcional)</label>
+              <select class="form-select glass-input text-white" [(ngModel)]="seccionSel" [disabled]="!gradoSel">
+                <option [ngValue]="null" class="text-dark">Todas (General)</option>
+                <option *ngFor="let s of secciones" [ngValue]="s" class="text-dark">Sección {{ s.identificador }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button class="btn btn-info text-white glass-btn rounded-pill px-4" 
+                    (click)="generarReporteRendimiento()" 
+                    [disabled]="!gradoSel || !idCicloSel || cargando">
+              <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!cargando" class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- REPORTE DE INGRESOS -->
+        <div *ngIf="reporteActivo === 'ingresos'">
+          <h5 class="text-white mb-3"><i class="bi bi-cash-coin text-success me-2"></i> Reporte de Ingresos</h5>
+          <p class="text-white-50 small mb-4">Genera un informe financiero con el total de ingresos desglosado por concepto. Deja las fechas en blanco para ver el histórico completo de caja.</p>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="text-white-50 small mb-1">Fecha de Inicio (Opcional)</label>
+              <input type="date" class="form-control glass-input text-white" [(ngModel)]="fechaInicioSel">
+            </div>
+
+            <div class="col-md-6">
+              <label class="text-white-50 small mb-1">Fecha de Fin (Opcional)</label>
+              <input type="date" class="form-control glass-input text-white" [(ngModel)]="fechaFinSel">
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button class="btn btn-success text-white glass-btn rounded-pill px-4 fw-bold" 
+                    (click)="generarReporteIngresos()" 
+                    [disabled]="cargando">
+              <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!cargando" class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- PRÉSTAMOS EN MORA -->
+        <div *ngIf="reporteActivo === 'mora'">
+          <h5 class="text-white mb-3"><i class="bi bi-book-half text-danger me-2"></i> Reporte de Libros en Mora</h5>
+          <p class="text-white-50 small mb-4">Genera un informe institucional con todos los préstamos de biblioteca que han excedido su fecha límite de devolución. Calcula automáticamente los días de atraso y el recargo generado hasta el día de hoy.</p>
+          
+          <div class="alert alert-dark glass-alert border-secondary text-black-50 mb-4 small">
+            <i class="bi bi-info-circle me-2"></i> Este reporte se genera al instante comparando los registros activos con la fecha actual del servidor.
+          </div>
+
+          <div class="text-end">
+            <button class="btn btn-danger text-white glass-btn rounded-pill px-4 fw-bold" 
+                    (click)="generarReporteMora()" 
+                    [disabled]="cargando">
+              <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!cargando" class="bi bi-file-earmark-pdf me-2"></i> Generar Reporte de Mora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
