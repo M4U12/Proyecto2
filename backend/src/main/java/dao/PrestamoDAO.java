@@ -279,7 +279,7 @@ public class PrestamoDAO {
         sql.append("ORDER BY p.id_prestamo DESC LIMIT ? OFFSET ?");
 
         try (Connection conn = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
+            double tarifaMora = obtenerTarifaMora(conn);
             int paramIndex = 1;
             if (idEstudiante != null) {
                 ps.setInt(paramIndex++, idEstudiante);
@@ -325,8 +325,15 @@ public class PrestamoDAO {
 
                     dto.setEstado(EstadoPrestamo.valueOf(rs.getString("estado")));
                     dto.setRenovaciones(rs.getInt("renovaciones"));
-                    dto.setMultaGenerada(rs.getDouble("multa_generada"));
                     dto.setMultaPagada(rs.getBoolean("multa_pagada"));
+                    
+                    double multaCalculada = calcularMultaDinamica(
+                            dto.getFechaLimite(), 
+                            rs.getDouble("multa_generada"), 
+                            tarifaMora, 
+                            rs.getString("estado")
+                    );
+                    dto.setMultaGenerada(multaCalculada);
 
                     lista.add(dto);
                 }
@@ -335,6 +342,17 @@ public class PrestamoDAO {
             throw new BDException("Error al listar los préstamos: " + e.getMessage(), e);
         }
         return lista;
+    }
+    
+    private double calcularMultaDinamica(LocalDate limite, double multaBD, double tarifa, String estado) {
+        if (EstadoPrestamo.ACTIVO.name().equals(estado) && limite != null) {
+            LocalDate hoy = LocalDate.now();
+            if (hoy.isAfter(limite)) {
+                long diasAtraso = ChronoUnit.DAYS.between(limite, hoy);
+                return diasAtraso * tarifa;
+            }
+        }
+        return multaBD; // Si no está activo o no hay atraso, devuelve lo que ya tiene la BD
     }
 
     public List<PrestamoResponseDTO> listarMultasPendientes() throws BDException {
@@ -403,7 +421,7 @@ public class PrestamoDAO {
         Connection conn = null;
         try {
             conn = DBConnectionSingleton.getInstance().getConnection();
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
 
             Integer idEstudiante = null;
             Integer idEmpleado = null;
@@ -444,7 +462,7 @@ public class PrestamoDAO {
                 psUpdate.executeUpdate();
             }
 
-            conn.commit(); 
+            conn.commit();
             return true;
 
         } catch (SQLException | BDException e) {
@@ -453,7 +471,7 @@ public class PrestamoDAO {
                     conn.rollback();
                 } catch (SQLException ex) {
                     ex.printStackTrace();
-                } 
+                }
             }
             throw new BDException("Error al registrar el pago. Es posible que el número de factura ya exista.", e);
         } finally {
@@ -466,5 +484,17 @@ public class PrestamoDAO {
                 }
             }
         }
+    }
+
+    public double obtenerTarifaMora(Connection conn) {
+        String query = "SELECT valor FROM configuracion_sistema WHERE clave = 'MORA_DIARIA_BIBLIOTECA'";
+        try (PreparedStatement ps = conn.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getDouble("valor");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 5.00; 
     }
 }

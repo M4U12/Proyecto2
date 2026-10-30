@@ -5,8 +5,8 @@
   
   <form [formGroup]="gradoForm" (ngSubmit)="guardarGrado()">
     
-    <!-- DATOS DEL GRADO  -->
-    <div class="row g-3 mb-4">
+    <!-- DATOS DEL GRADO (Fila 1) -->
+    <div class="row g-3 mb-3">
       <div class="col-md-3">
         <label class="text-white-50 small mb-1">Nombre del Grado</label>
         <input type="text" class="form-control glass-input text-white" formControlName="nombre" placeholder="Ej. Primero, Segundo...">
@@ -41,6 +41,19 @@
             {{ ciclo.anio }}
           </option>
         </select>
+      </div>
+    </div>
+
+    <!-- TARIFAS FINANCIERAS -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="text-white-50 small mb-1">Costo de Inscripción Anual (Q)</label>
+        <input type="number" class="form-control glass-input text-white fw-bold text-success" formControlName="cuotaInscripcion" min="0" step="0.01">
+      </div>
+      
+      <div class="col-md-6">
+        <label class="text-white-50 small mb-1">Cuota Mensual / Colegiatura (Q)</label>
+        <input type="number" class="form-control glass-input text-white fw-bold text-success" formControlName="cuotaMensual" min="0" step="0.01">
       </div>
     </div>
 
@@ -83,7 +96,7 @@
   </form>
 </div>
 
-<!-- TABLA DE GRADOS   -->
+<!-- TABLA DE GRADOS -->
 <div class="glass-panel p-4">
   <h5 class="text-white fw-light tracking-wide mb-4"><i class="bi bi-diagram-3 me-2"></i>Catálogo de Grados</h5>
   <div class="table-responsive">
@@ -93,6 +106,7 @@
           <th>Grado</th>
           <th>Nivel Educativo</th>
           <th>Especialidad / Carrera</th>
+          <th>Cuota Mensual</th> 
           <th>Acciones</th>
         </tr>
       </thead>
@@ -109,15 +123,16 @@
             <span *ngIf="grado.idCarrera">{{ getNombreCarrera(grado.idCarrera) }}</span>
             <span *ngIf="!grado.idCarrera" class="text-white-50 small">No aplica</span>
           </td>
-          
+          <td class="text-success fw-bold">Q {{ grado.cuotaMensual }}</td>
+
           <td>
-            <!-- Botón Gestionar Secciones  -->
+            <!-- Botón Gestionar Secciones -->
             <button class="btn btn-sm glass-btn-action text-warning me-2" title="Gestionar Secciones"
                     data-bs-toggle="modal" data-bs-target="#modalGestionarSecciones" (click)="abrirModalSecciones(grado)">
               <i class="bi bi-collection"></i>
             </button>
 
-            <!-- Botón Editar Grado  -->
+            <!-- Botón Editar Grado -->
             <button class="btn btn-sm glass-btn-action text-info me-2" title="Editar Grado"
                     data-bs-toggle="modal" data-bs-target="#modalEditarGrado" (click)="abrirModalEdicion(grado)">
               <i class="bi bi-pencil"></i>
@@ -138,7 +153,7 @@
   </div>
 </div>
 
-<!-- MODAL 1: EDICIÓN DE GRADO   -->
+<!-- MODAL 1: EDICIÓN DE GRADO -->
 <div class="modal fade" id="modalEditarGrado" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content glass-panel border-0">
@@ -166,7 +181,7 @@
             </select>
           </div>
 
-          <div class="col-12">
+          <div class="col-12 mb-2">
             <label class="text-white-50 small mb-1">Carrera (Solo Diversificado)</label>
             <select class="form-select glass-input text-white" formControlName="idCarrera">
               <option value="" class="text-dark">Ninguna / No aplica</option>
@@ -175,10 +190,22 @@
               </option>
             </select>
           </div>
+
+          <!-- TARIFAS EN EDICIÓN -->
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">Costo de Inscripción (Q)</label>
+            <input type="number" class="form-control glass-input text-white fw-bold text-success" formControlName="cuotaInscripcion" min="0" step="0.01">
+          </div>
+          
+          <div class="col-md-6">
+            <label class="text-white-50 small mb-1">Cuota Mensual (Q)</label>
+            <input type="number" class="form-control glass-input text-white fw-bold text-success" formControlName="cuotaMensual" min="0" step="0.01">
+          </div>
+
         </form>
       </div>
       
-      <div class="modal-footer border-secondary">
+      <div class="modal-footer border-secondary mt-2">
         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
           Cancelar
         </button>
@@ -191,7 +218,7 @@
   </div>
 </div>
 
-<!-- MODAL 2: GESTIONAR SECCIONES POR CICLO  -->
+<!-- MODAL 2: GESTIONAR SECCIONES POR CICLO -->
 <div class="modal fade" id="modalGestionarSecciones" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content glass-panel border-0">
@@ -218,7 +245,7 @@
             </select>
           </div>
 
-          <!-- PASO 2: AGREGAR SECCIÓN Y VER TABLA (Se oculta si no hay ciclo) -->
+          <!-- PASO 2: AGREGAR SECCIÓN Y VER TABLA -->
           <div *ngIf="nuevaSeccionForm.get('idCiclo')?.value">
             
             <div class="row g-2 align-items-end mb-4 bg-dark bg-opacity-25 p-3 rounded border border-secondary">

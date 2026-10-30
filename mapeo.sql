@@ -62,6 +62,8 @@ CREATE TABLE carrera (
 CREATE TABLE grado (
     id_grado INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
+    cuota_inscripcion DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    cuota_mensual DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     id_nivel INT NOT NULL,
     id_carrera INT NULL,
     FOREIGN KEY (id_nivel) REFERENCES nivel_educativo(id_nivel),
@@ -205,6 +207,13 @@ CREATE TABLE pago (
     FOREIGN KEY (id_ciclo) REFERENCES ciclo_lectivo(id_ciclo),
     FOREIGN KEY (id_prestamo) REFERENCES prestamo(id_prestamo),
     CHECK (id_estudiante iS NOT NULL OR id_empleado IS NOT NULL)
+);
+
+CREATE TABLE configuracion_sistema (
+    id_configuracion INT AUTO_INCREMENT PRIMARY KEY,
+    clave VARCHAR(50) UNIQUE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    descripcion VARCHAR(255) NULL
 );
 
 

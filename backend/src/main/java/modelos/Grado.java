@@ -4,11 +4,14 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Grado {
+
     private int idGrado;
     private String nombre;
     private int idNivel;
-    private Integer idCarrera; 
+    private Integer idCarrera;
     private List<Seccion> secciones;
+    private Double cuotaInscripcion;
+    private Double cuotaMensual;
 
     public Grado() {
         this.secciones = new ArrayList<>();
@@ -60,5 +63,21 @@ public class Grado {
 
     public void setSecciones(List<Seccion> secciones) {
         this.secciones = secciones;
+    }
+
+    public Double getCuotaInscripcion() {
+        return cuotaInscripcion;
+    }
+
+    public void setCuotaInscripcion(Double cuotaInscripcion) {
+        this.cuotaInscripcion = cuotaInscripcion;
+    }
+
+    public Double getCuotaMensual() {
+        return cuotaMensual;
+    }
+
+    public void setCuotaMensual(Double cuotaMensual) {
+        this.cuotaMensual = cuotaMensual;
     }
 }

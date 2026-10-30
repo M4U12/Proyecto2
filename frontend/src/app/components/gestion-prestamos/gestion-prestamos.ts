@@ -73,7 +73,7 @@ export class GestionPrestamos implements OnInit {
       limiteActual.setDate(limiteActual.getDate() + 3);
       this.inputFecha = limiteActual.toISOString().split('T')[0];
     } else if (accion === 'DEVOLVER') {
-      this.inputMulta = 0;
+      this.inputMulta = prestamo.multaGenerada || 0;
     }
   }
 

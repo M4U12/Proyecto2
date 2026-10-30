@@ -43,6 +43,8 @@ export class Grados implements OnInit {
       idNivel: ['', Validators.required],
       idCarrera: [{ value: '', disabled: true }], 
       idCiclo: ['', Validators.required], 
+      cuotaInscripcion: [0, [Validators.required, Validators.min(0)]],
+      cuotaMensual: [0, [Validators.required, Validators.min(0)]],
       secciones: this.fb.array([]) 
     });
 
@@ -50,7 +52,9 @@ export class Grados implements OnInit {
       idGrado: [''],
       nombre: ['', Validators.required],
       idNivel: ['', Validators.required],
-      idCarrera: [{ value: '', disabled: true }] 
+      idCarrera: [{ value: '', disabled: true }],
+      cuotaInscripcion: [0, [Validators.required, Validators.min(0)]],
+      cuotaMensual: [0, [Validators.required, Validators.min(0)]]
     });
 
     this.nuevaSeccionForm = this.fb.group({
@@ -159,6 +163,8 @@ export class Grados implements OnInit {
       idNivel: Number(formularioBruto.idNivel),
       idCarrera: formularioBruto.idCarrera ? Number(formularioBruto.idCarrera) : null,
       idCiclo: Number(formularioBruto.idCiclo),
+      cuotaInscripcion: Number(formularioBruto.cuotaInscripcion),
+      cuotaMensual: Number(formularioBruto.cuotaMensual),
       secciones: formularioBruto.secciones
     };
 
@@ -181,7 +187,9 @@ export class Grados implements OnInit {
       idGrado: grado.idGrado,
       nombre: grado.nombre,
       idNivel: grado.idNivel,
-      idCarrera: grado.idCarrera || ''
+      idCarrera: grado.idCarrera || '',
+      cuotaInscripcion: grado.cuotaInscripcion || 0,
+      cuotaMensual: grado.cuotaMensual || 0
     });
   }
 
@@ -191,13 +199,15 @@ export class Grados implements OnInit {
     const formularioEditado = this.gradoEditForm.getRawValue();
     const id = formularioEditado.idGrado;
 
-    const payload = {
+    const inf = {
       nombre: formularioEditado.nombre,
       idNivel: Number(formularioEditado.idNivel),
-      idCarrera: formularioEditado.idCarrera ? Number(formularioEditado.idCarrera) : null
+      idCarrera: formularioEditado.idCarrera ? Number(formularioEditado.idCarrera) : null,
+      cuotaInscripcion: Number(formularioEditado.cuotaInscripcion),
+      cuotaMensual: Number(formularioEditado.cuotaMensual)
     };
 
-    this.gradoService.modificarGrado(id, payload).subscribe({
+    this.gradoService.modificarGrado(id, inf).subscribe({
       next: () => {
         alert('Grado actualizado exitosamente.');
         this.cargarGrados();

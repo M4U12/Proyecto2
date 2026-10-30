@@ -12,7 +12,7 @@ import java.util.Optional;
 public class GradoDAO {
 
     public boolean registrarGradoConSecciones(Grado grado, List<Seccion> secciones) throws BDException {
-        String queryGrado = "INSERT INTO grado (nombre, id_nivel, id_carrera) VALUES (?, ?, ?)";
+        String queryGrado = "INSERT INTO grado (nombre, cuota_inscripcion, cuota_mensual, id_nivel, id_carrera) VALUES (?, ?, ?, ?, ?)";
         String querySeccion = "INSERT INTO seccion (identificador, cupo, id_grado, id_ciclo) VALUES (?, ?, ?, ?)";
 
         Connection connection = null;
@@ -23,12 +23,14 @@ public class GradoDAO {
 
             try (PreparedStatement psGrado = connection.prepareStatement(queryGrado, Statement.RETURN_GENERATED_KEYS)) {
                 psGrado.setString(1, grado.getNombre());
-                psGrado.setInt(2, grado.getIdNivel());
+                psGrado.setDouble(2, grado.getCuotaInscripcion() != null ? grado.getCuotaInscripcion() : 0.0);
+                psGrado.setDouble(3, grado.getCuotaMensual() != null ? grado.getCuotaMensual() : 0.0);
+                psGrado.setInt(4, grado.getIdNivel());
 
                 if (grado.getIdCarrera() != null && grado.getIdCarrera() > 0) {
-                    psGrado.setInt(3, grado.getIdCarrera());
+                    psGrado.setInt(5, grado.getIdCarrera());
                 } else {
-                    psGrado.setNull(3, Types.INTEGER);
+                    psGrado.setNull(5, Types.INTEGER);
                 }
 
                 psGrado.executeUpdate();
@@ -79,19 +81,21 @@ public class GradoDAO {
     }
 
     public boolean modificarGrado(Grado grado) throws BDException {
-        String queryUpdateGrado = "UPDATE grado SET nombre = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
+        String queryUpdateGrado = "UPDATE grado SET nombre = ?, cuota_inscripcion = ?, cuota_mensual = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
 
         try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryUpdateGrado)) {
 
             psGrado.setString(1, grado.getNombre());
-            psGrado.setInt(2, grado.getIdNivel());
+            psGrado.setDouble(2, grado.getCuotaInscripcion() != null ? grado.getCuotaInscripcion() : 0.0);
+            psGrado.setDouble(3, grado.getCuotaMensual() != null ? grado.getCuotaMensual() : 0.0);
+            psGrado.setInt(4, grado.getIdNivel());
 
             if (grado.getIdCarrera() != null && grado.getIdCarrera() > 0) {
-                psGrado.setInt(3, grado.getIdCarrera());
+                psGrado.setInt(5, grado.getIdCarrera());
             } else {
-                psGrado.setNull(3, java.sql.Types.INTEGER);
+                psGrado.setNull(5, Types.INTEGER);
             }
-            psGrado.setInt(4, grado.getIdGrado());
+            psGrado.setInt(6, grado.getIdGrado());
 
             return psGrado.executeUpdate() > 0;
 
@@ -102,10 +106,11 @@ public class GradoDAO {
 
     public List<Grado> listarConSeccionesPorCiclo(int idCiclo) throws BDException {
         List<Grado> listaGrados = new ArrayList<>();
-        String queryGrado = "SELECT DISTINCT g.* FROM grado g " + //si una fila es igual a otra, solo la muestra una vez
-                    "INNER JOIN curriculo c ON g.id_grado = c.id_grado " +
-                    "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel " +
-                    "WHERE c.id_ciclo = ? AND n.estado = true";
+        String queryGrado = "SELECT DISTINCT g.* FROM grado g "
+                + //si una fila es igual a otra, solo la muestra una vez
+                "INNER JOIN curriculo c ON g.id_grado = c.id_grado "
+                + "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel "
+                + "WHERE c.id_ciclo = ? AND n.estado = true";
         String querySeccion = "SELECT * FROM seccion WHERE id_grado = ? AND id_ciclo = ?";
 
         try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
@@ -118,6 +123,8 @@ public class GradoDAO {
                     grado.setIdGrado(rsGrado.getInt("id_grado"));
                     grado.setNombre(rsGrado.getString("nombre"));
                     grado.setIdNivel(rsGrado.getInt("id_nivel"));
+                    grado.setCuotaInscripcion(rsGrado.getDouble("cuota_inscripcion"));
+                    grado.setCuotaMensual(rsGrado.getDouble("cuota_mensual"));
 
                     int idCarrera = rsGrado.getInt("id_carrera");
                     if (!rsGrado.wasNull()) {
@@ -168,6 +175,8 @@ public class GradoDAO {
                     grado.setIdGrado(rs.getInt("id_grado"));
                     grado.setNombre(rs.getString("nombre"));
                     grado.setIdNivel(rs.getInt("id_nivel"));
+                    grado.setCuotaInscripcion(rs.getDouble("cuota_inscripcion"));
+                    grado.setCuotaMensual(rs.getDouble("cuota_mensual"));
 
                     int idCarrera = rs.getInt("id_carrera");
                     if (!rs.wasNull()) {
@@ -183,17 +192,16 @@ public class GradoDAO {
 
     public List<Grado> listarPaginado(int pagina, int tamanoPagina) throws BDException {
         List<Grado> listaGrados = new ArrayList<>();
-        String queryGrado = "SELECT g.* FROM grado g " +
-                    "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel " +
-                    "WHERE n.estado = true " + 
-                    "ORDER BY g.id_grado ASC LIMIT ? OFFSET ?";
+        String queryGrado = "SELECT g.* FROM grado g "
+                + "INNER JOIN nivel_educativo n ON g.id_nivel = n.id_nivel "
+                + "WHERE n.estado = true "
+                + "ORDER BY g.id_grado ASC LIMIT ? OFFSET ?";
         String querySeccion = "SELECT * FROM seccion WHERE id_grado = ? ORDER BY identificador ASC";
 
         int offset = (pagina - 1) * tamanoPagina;
 
-        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); 
-             PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
-             
+        try (Connection connection = DBConnectionSingleton.getInstance().getConnection(); PreparedStatement psGrado = connection.prepareStatement(queryGrado)) {
+
             psGrado.setInt(1, tamanoPagina);
             psGrado.setInt(2, offset);
 
@@ -203,6 +211,8 @@ public class GradoDAO {
                     grado.setIdGrado(rsGrado.getInt("id_grado"));
                     grado.setNombre(rsGrado.getString("nombre"));
                     grado.setIdNivel(rsGrado.getInt("id_nivel"));
+                    grado.setCuotaInscripcion(rsGrado.getDouble("cuota_inscripcion"));
+                    grado.setCuotaMensual(rsGrado.getDouble("cuota_mensual"));
 
                     int idCarrera = rsGrado.getInt("id_carrera");
                     if (!rsGrado.wasNull()) {
@@ -215,15 +225,15 @@ public class GradoDAO {
                         try (ResultSet rsSeccion = psSeccion.executeQuery()) {
                             while (rsSeccion.next()) {
                                 secciones.add(new Seccion(
-                                    rsSeccion.getInt("id_seccion"),
-                                    rsSeccion.getString("identificador"),
-                                    rsSeccion.getInt("cupo"),
-                                    rsSeccion.getInt("id_grado")
+                                        rsSeccion.getInt("id_seccion"),
+                                        rsSeccion.getString("identificador"),
+                                        rsSeccion.getInt("cupo"),
+                                        rsSeccion.getInt("id_grado")
                                 ));
                             }
                         }
                     }
-                    
+
                     grado.setSecciones(secciones);
                     listaGrados.add(grado);
                 }

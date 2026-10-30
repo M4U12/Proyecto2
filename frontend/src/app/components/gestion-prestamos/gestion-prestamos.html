@@ -62,6 +62,9 @@
                   {{ p.estado }}
                 </span>
                 <div *ngIf="p.renovaciones > 0" class="small text-info mt-1">{{ p.renovaciones }} Ren.</div>
+                <div *ngIf="p.estado === 'ACTIVO' && p.multaGenerada > 0" class="small text-danger fw-bold mt-1">
+                  <i class="bi bi-exclamation-circle"></i> Mora: Q{{ p.multaGenerada | number:'1.2-2' }}
+                </div>
               </td>
               <td class="text-center">
                 <!-- Botones si está SOLICITADO -->
@@ -76,7 +79,7 @@
                 <button *ngIf="p.estado === 'ACTIVO'" class="btn btn-sm btn-primary me-1 rounded" (click)="abrirPanel(p, 'DEVOLVER')" title="Recibir Libro">
                   <i class="bi bi-box-arrow-in-left"></i>
                 </button>
-                <button *ngIf="p.estado === 'ACTIVO' && p.renovaciones < 2" class="btn btn-sm btn-info rounded" (click)="abrirPanel(p, 'RENOVAR')" title="Renovar Plazo">
+                <button *ngIf="p.estado === 'ACTIVO' && p.renovaciones < 2 && p.multaGenerada === 0" class="btn btn-sm btn-info rounded" (click)="abrirPanel(p, 'RENOVAR')" title="Renovar Plazo">
                   <i class="bi bi-arrow-clockwise"></i>
                 </button>
               </td>
@@ -125,13 +128,16 @@
 
       <!-- Input para DEVOLVER (Multa) -->
       <div *ngIf="accionActual === 'DEVOLVER'" class="mb-4">
-        <label class="form-label text-white-50 small">Multa por Retraso (Q)</label>
+        <label class="form-label text-white-50 small">Multa por Retraso Generada (Q)</label>
         <div class="input-group">
-          <span class="input-group-text bg-transparent border-secondary text-white-50">Q</span>
-          <input type="number" class="form-control glass-input text-white fs-4 fw-bold" [(ngModel)]="inputMulta" min="0" step="1.00">
+          <span class="input-group-text bg-transparent border-secondary text-white-50">
+            <i class="bi bi-lock-fill"></i> 
+          </span>
+          <input type="number" class="form-control glass-input text-white fs-4 fw-bold bg-dark bg-opacity-50" 
+                 [(ngModel)]="inputMulta" readonly>
         </div>
-        <div class="form-text text-white-50 mt-2">
-          Si el libro se entregó a tiempo o intacto, deja el valor en 0.
+        <div class="form-text text-warning mt-2">
+          <i class="bi bi-info-circle"></i> El sistema calcula esta mora automáticamente. No puede ser alterada manualmente.
         </div>
       </div>
 

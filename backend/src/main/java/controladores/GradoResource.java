@@ -2,6 +2,7 @@ package controladores;
 
 import dao.GradoDAO;
 import dto.GradoRequestDTO;
+import dto.ModificarGradoDTO;
 import dto.SeccionDTO;
 import excepciones.BDException;
 import modelos.Grado;
@@ -24,11 +25,19 @@ public class GradoResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registrarGrado(GradoRequestDTO request) {
+        
+        
         try {
+            if (request.getCuotaInscripcion() < 0 || request.getCuotaMensual() < 0) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"error\":\"Error de validación: Las tarifas financieras no pueden ser menores a Q 0.00.\"}").build();
+            }
             Grado gradoModelo = new Grado();
             gradoModelo.setNombre(request.getNombre());
             gradoModelo.setIdNivel(request.getIdNivel());
             gradoModelo.setIdCarrera(request.getIdCarrera());
+            gradoModelo.setCuotaInscripcion(request.getCuotaInscripcion());
+            gradoModelo.setCuotaMensual(request.getCuotaMensual());
 
             List<Seccion> seccionesModelo = new ArrayList<>();
             if (request.getSecciones() != null) {
@@ -62,13 +71,19 @@ public class GradoResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response modificarGrado(@PathParam("id") int idGrado, dto.ModificarGradoDTO request) {
+    public Response modificarGrado(@PathParam("id") int idGrado, ModificarGradoDTO request) {
         try {
+            if (request.getCuotaInscripcion() < 0 || request.getCuotaMensual() < 0) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"error\":\"Error de validación: Las tarifas financieras no pueden ser menores a Q 0.00.\"}").build();
+            }
             Grado grado = new Grado();
             grado.setIdGrado(idGrado);
             grado.setNombre(request.getNombre());
             grado.setIdNivel(request.getIdNivel());
             grado.setIdCarrera(request.getIdCarrera());
+            grado.setCuotaInscripcion(request.getCuotaInscripcion());
+            grado.setCuotaMensual(request.getCuotaMensual());
 
             boolean modificado = gradoDAO.modificarGrado(grado);
 
@@ -96,7 +111,7 @@ public class GradoResource {
                     .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
-    
+
     @GET
     @Path("/ciclo/{idCiclo}")
     @Produces(MediaType.APPLICATION_JSON)

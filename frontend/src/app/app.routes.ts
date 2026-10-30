@@ -26,6 +26,8 @@ import { CatalogoLibros } from './components/catalogo-libros/catalogo-libros';
 import { MisPrestamos } from './components/mis-prestamos/mis-prestamos';
 import { Tesoreria } from './components/tesoreria/tesoreria';
 import { EstadoCuenta } from './components/estado-cuenta/estado-cuenta';
+import { ConfiguracionService } from './services/configuracion.service';
+import { Configuraciones } from './components/configuraciones/configuraciones';
 
 export const routes: Routes = [
   { path: '', component: Inicio },
@@ -177,6 +179,12 @@ export const routes: Routes = [
         component: EstadoCuenta,
         canActivate: [roleGuard],
         data: { role: 'ESTUDIANTE'}
+      },
+      { 
+        path: 'configuraciones', 
+        component: Configuraciones,
+        canActivate: [roleGuard],
+        data: { role: 'ADMINISTRADOR'}
       },
     ]
   },

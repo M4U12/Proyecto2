@@ -121,7 +121,9 @@ public class EstudianteDAO {
     public Optional<ExpedienteCompletoDTO> consultarExpediente(String codigoPersonal) throws BDException {
         String query = "SELECT e.id_estudiante, e.codigo_personal, e.nombres, e.apellidos, "
                 + "e.fecha_nacimiento, e.informacion_medica, e.nombre_encargado, e.contacto_encargado, e.estado, "
-                + "g.id_grado AS id_grado_actual, g.nombre AS grado, s.identificador AS seccion, "
+                + "g.id_grado AS id_grado_actual, g.nombre AS grado, "
+                + "g.cuota_inscripcion, g.cuota_mensual, " 
+                + "s.identificador AS seccion, "
                 + "c.id_ciclo, c.anio AS ciclo "
                 + "FROM estudiante e "
                 + "LEFT JOIN inscripcion i ON e.id_estudiante = i.id_estudiante "
@@ -156,6 +158,13 @@ public class EstudianteDAO {
                     int idGrado = rs.getInt("id_grado_actual");
                     if (!rs.wasNull()) {
                         expediente.setIdGradoActual(idGrado);
+                        // extrae los precios solo si el alumno ya tiene un grado asignado
+                        expediente.setCuotaInscripcion(rs.getDouble("cuota_inscripcion"));
+                        expediente.setCuotaMensual(rs.getDouble("cuota_mensual"));
+                    } else {
+                        // si no tiene grado, los montos son 0 por seguridad
+                        expediente.setCuotaInscripcion(0.0);
+                        expediente.setCuotaMensual(0.0);
                     }
 
                     expediente.setNombreGradoActual(rs.getString("grado") != null ? rs.getString("grado") : "Sin asignación");

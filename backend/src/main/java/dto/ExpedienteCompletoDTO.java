@@ -20,6 +20,8 @@ public class ExpedienteCompletoDTO {
     private LocalDate fechaNacimiento;
     private String nombreEncargado;
     private EstadoEstudiante estadoAlumno; 
+    private Double cuotaInscripcion;
+    private Double cuotaMensual;
 
     public ExpedienteCompletoDTO() {
     }
@@ -142,5 +144,21 @@ public class ExpedienteCompletoDTO {
 
     public void setIdCicloActivo(int idCicloActivo) {
         this.idCicloActivo = idCicloActivo;
+    }
+    
+    public Double getCuotaInscripcion() {
+        return cuotaInscripcion;
+    }
+
+    public void setCuotaInscripcion(Double cuotaInscripcion) {
+        this.cuotaInscripcion = cuotaInscripcion;
+    }
+
+    public Double getCuotaMensual() {
+        return cuotaMensual;
+    }
+
+    public void setCuotaMensual(Double cuotaMensual) {
+        this.cuotaMensual = cuotaMensual;
     }
 }

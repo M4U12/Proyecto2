@@ -9,6 +9,8 @@ public class GradoRequestDTO {
     private Integer idCarrera;
     private List<SeccionDTO> secciones;
     private int idCiclo;
+    private Double cuotaInscripcion;
+    private Double cuotaMensual;
 
     public String getNombre() {
         return nombre;
@@ -48,6 +50,22 @@ public class GradoRequestDTO {
 
     public void setIdCiclo(int idCiclo) {
         this.idCiclo = idCiclo;
+    }
+
+    public double getCuotaMensual() {
+        return cuotaMensual;
+    }
+
+    public double getCuotaInscripcion() {
+        return cuotaInscripcion;
+    }
+
+    public void setCuotaMensual(double cuotaMensual) {
+        this.cuotaMensual = cuotaMensual;
+    }
+
+    public void setCuotaInscripcion(double cuotaInscripcion) {
+        this.cuotaInscripcion = cuotaInscripcion;
     }
     
     

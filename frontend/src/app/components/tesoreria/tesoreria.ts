@@ -155,6 +155,7 @@ export class Tesoreria implements OnInit {
         this.terminoBusqueda = ''; 
         this.cargarMultas(); 
         this.cargarHistorial(); 
+        this.cdr.detectChanges();
       },
       error: (err: any) => alert('Error: ' + (err.error?.error || 'No se pudo procesar el pago.'))
     });
@@ -203,7 +204,7 @@ export class Tesoreria implements OnInit {
       next: (datos: any) => {
         this.estudianteCobro = datos;
         this.facturaAcademica = '';
-        this.montoAcademico = null;
+        this.alCambiarConcepto();
         this.cdr.detectChanges();
       },
       error: () => alert('Estudiante no encontrado.')
@@ -211,9 +212,27 @@ export class Tesoreria implements OnInit {
   }
 
   alCambiarConcepto() {
-    if (this.conceptoCobro === 'INSCRIPCION') this.descripcionAcademica = 'Pago de inscripción anual';
-    else if (this.conceptoCobro === 'COLEGIATURA') this.descripcionAcademica = 'Pago de colegiatura mensual';
-    else { this.descripcionAcademica = 'Pago de actividad extracurricular'; this.mesColegiatura = null; }
+    if (!this.estudianteCobro) {
+        this.montoAcademico = null;
+        return;
+    }
+
+    if (this.conceptoCobro === 'INSCRIPCION') {
+        this.descripcionAcademica = 'Pago de inscripción anual';
+        // Asigna el monto fijo bloqueado del grado
+        this.montoAcademico = this.estudianteCobro.cuotaInscripcion || 0;
+    } 
+    else if (this.conceptoCobro === 'COLEGIATURA') {
+        this.descripcionAcademica = 'Pago de colegiatura mensual';
+        // Asigna el monto fijo bloqueado del grado
+        this.montoAcademico = this.estudianteCobro.cuotaMensual || 0;
+    } 
+    else { 
+        this.descripcionAcademica = 'Pago de actividad extracurricular'; 
+        this.mesColegiatura = null; 
+        // Desbloquea la casilla borrando su valor, la secretaria lo teclea a mano
+        this.montoAcademico = null;
+    }
   }
 
   limpiarCobro() {
