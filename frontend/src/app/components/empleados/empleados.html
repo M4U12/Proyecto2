@@ -132,11 +132,14 @@
                     data-bs-toggle="modal" data-bs-target="#modalEditarEmpleado" (click)="abrirModalEdicion(emp)">
               <i class="bi bi-pencil"></i>
             </button>
+            <!-- Botón Dar de Alta (Verde) -->
             <button *ngIf="!emp.estado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
               class="btn btn-sm glass-btn-action text-success me-2" title="Dar de Alta">
               <i class="bi bi-person-check-fill"></i>
             </button>
-            <button *ngIf="emp.estado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
+
+            <!-- Botón Dar de Baja (Rojo) -->
+            <button *ngIf="emp.estado && emp.idEmpleado !== miIdEmpleado" (click)="cambiarEstado(emp.idEmpleado, emp.estado)" 
               class="btn btn-sm glass-btn-action text-danger" title="Dar de Baja">
               <i class="bi bi-person-x-fill"></i>
             </button>

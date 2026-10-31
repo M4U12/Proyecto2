@@ -77,11 +77,12 @@ public class SeccionDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    seccion = new Seccion(
-                    rs.getInt("id_seccion"),
-                    rs.getString("identificador"),
-                    rs.getInt("cupo"),
-                    rs.getInt("id_grado"));
+                    seccion = new Seccion();
+                    seccion.setIdSeccion(rs.getInt("id_seccion"));
+                    seccion.setIdentificador(rs.getString("identificador"));
+                    seccion.setCupo(rs.getInt("cupo"));
+                    seccion.setIdGrado(rs.getInt("id_grado"));
+                    seccion.setIdCiclo(rs.getInt("id_ciclo")); 
                 }
             }
         } catch (SQLException e) {

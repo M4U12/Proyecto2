@@ -21,4 +21,8 @@ export class SeccionService {
   eliminarSeccion(idSeccion: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${idSeccion}`);
   }
+
+  modificarSeccion(idSeccion: number, datos: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idSeccion}`, datos);
+  }
 }

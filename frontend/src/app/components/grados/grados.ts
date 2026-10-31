@@ -17,6 +17,7 @@ export class Grados implements OnInit {
   gradoForm: FormGroup;
   gradoEditForm: FormGroup;
   nuevaSeccionForm: FormGroup;
+  seccionEditForm: FormGroup;
   
   listaGrados: any[] = [];
   listaNiveles: any[] = [];
@@ -70,7 +71,15 @@ export class Grados implements OnInit {
     this.nuevaSeccionForm.get('idCiclo')?.valueChanges.subscribe(idCiclo => {
       if (idCiclo) this.cargarSeccionesDelGradoSeleccionado();
     });
+
+    this.seccionEditForm = this.fb.group({
+      idSeccion: [''],
+      identificador: ['', Validators.required],
+      cupo: [30, [Validators.required, Validators.min(1)]]
+    });
   }
+
+  
 
   ngOnInit(): void {
     this.cargarCatalogos();
@@ -272,5 +281,36 @@ export class Grados implements OnInit {
         error: (err) => alert('Error: ' + (err.error?.error || 'No se pudo eliminar'))
       });
     }
+  }
+
+
+  // EDICIÓN DE SECCIONES (MODAL 3)
+  abrirModalEdicionSeccion(sec: any) {
+    this.seccionEditForm.patchValue({
+      idSeccion: sec.idSeccion,
+      identificador: sec.identificador,
+      cupo: sec.cupo
+    });
+  }
+
+  actualizarSeccion() {
+    if (this.seccionEditForm.invalid) return;
+
+    const val = this.seccionEditForm.getRawValue();
+    const payload = {
+      identificador: val.identificador,
+      cupo: val.cupo
+    };
+
+    this.seccionService.modificarSeccion(val.idSeccion, payload).subscribe({
+      next: () => {
+        alert('Sección actualizada exitosamente.');
+        this.cargarSeccionesDelGradoSeleccionado(); // Refresca la tabla 
+      },
+      error: (err) => {
+        // si el cupo es menor a los inscritos
+        alert('Error al modificar: ' + (err.error?.error || 'Intenta de nuevo.'));
+      }
+    });
   }
 }

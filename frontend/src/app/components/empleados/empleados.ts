@@ -20,7 +20,7 @@ export class Empleados implements OnInit {
 
   paginaActual: number = 1;
   limitePorPagina: number = 10;
-
+  miIdEmpleado: number = 0;
   constructor(
     private fb: FormBuilder,
     private empleadoService: EmpleadoService,
@@ -29,6 +29,7 @@ export class Empleados implements OnInit {
     // identifica quién está usando la pantalla
     this.miRolActual = localStorage.getItem('rol') || '';
     this.soySuperAdmin = this.miRolActual === 'SUPER_ADMIN';
+    this.miIdEmpleado = Number(localStorage.getItem('idEmpleado')) || 0;
 
     // Formulario de creación
     this.empleadoForm = this.fb.group({
@@ -183,6 +184,11 @@ export class Empleados implements OnInit {
   }
 
   cambiarEstado(id: number, estadoActual: boolean) {
+    if (id === this.miIdEmpleado && estadoActual === true) {
+      alert('Por seguridad, no puedes dar de baja tu propia cuenta.');
+      return;
+    }
+
     const nuevoEstado = !estadoActual;
     this.empleadoService.cambiarEstado(id, nuevoEstado).subscribe({
       next: () => this.cargarEmpleados(),
